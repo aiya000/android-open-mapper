@@ -86,6 +86,13 @@ class ProfileRepository private constructor(context: Context) {
             if (!cam.adsSensitivityMultiplier.isFinite()) cam.adsSensitivityMultiplier = 0.70f else cam.adsSensitivityMultiplier = cam.adsSensitivityMultiplier.coerceIn(0.1f, 3.0f)
             if (!cam.maxStepPixels.isFinite() || cam.maxStepPixels <= 0f) cam.maxStepPixels = 55.0f else cam.maxStepPixels = cam.maxStepPixels.coerceIn(1.0f, 150.0f)
 
+            // Sanitize Menu Button: kept on screen, since it is the way into the HUD editor
+            p.menuButton?.let { menu ->
+                if (!menu.x.isFinite()) menu.x = 0.04f else menu.x = menu.x.coerceIn(0.02f, 0.98f)
+                if (!menu.y.isFinite()) menu.y = 0.15f else menu.y = menu.y.coerceIn(0.02f, 0.98f)
+                if (!menu.radius.isFinite() || menu.radius <= 0f) menu.radius = 0.035f else menu.radius = menu.radius.coerceIn(0.020f, 0.120f)
+            }
+
             // Sanitize Buttons
             if (p.buttons.size > 50) {
                 p.buttons = p.buttons.take(50).toMutableList()

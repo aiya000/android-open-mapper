@@ -7,6 +7,8 @@ import com.kinou.gameassist.data.model.ButtonConfig
 import com.kinou.gameassist.data.model.ButtonMode
 import com.kinou.gameassist.data.model.ButtonRole
 import com.kinou.gameassist.data.model.GameProfile
+import com.kinou.gameassist.data.model.MenuButtonConfig
+import com.kinou.gameassist.data.model.deepCopy
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.*
@@ -75,6 +77,52 @@ class ProfileRepositoryTest {
 
         val deserialized = json.decodeFromString<ButtonConfig>(jsonString)
         assertEquals(ButtonRole.FIRE, deserialized.role)
+    }
+
+    @Test
+    fun testProfilesSavedWithoutMenuButtonKeepTheEdgeHandle() {
+        val oldJson = """{"id": "old_profile", "name": "Old Profile"}"""
+        val deserialized = json.decodeFromString<GameProfile>(oldJson)
+        assertNull(deserialized.menuButton)
+    }
+
+    @Test
+    fun testMenuButtonSerialization() {
+        val profile = GameProfile(
+            id = "menu_profile",
+            name = "Menu Profile",
+            menuButton = MenuButtonConfig(x = 0.9f, y = 0.1f, radius = 0.05f)
+        )
+
+        val jsonString = json.encodeToString(profile)
+        assertTrue(jsonString.contains("menu_button"))
+
+        val deserialized = json.decodeFromString<GameProfile>(jsonString)
+        assertEquals(profile.menuButton, deserialized.menuButton)
+    }
+
+    @Test
+    fun testMenuButtonSanitizationKeepsItOnScreen() {
+        val profile = GameProfile(
+            id = "menu_profile",
+            name = "Menu Profile",
+            menuButton = MenuButtonConfig(x = Float.NaN, y = 5.0f, radius = -1.0f)
+        )
+
+        ProfileRepository.validateAndSanitizeProfile(profile)
+
+        val menu = profile.menuButton!!
+        assertEquals(0.04f, menu.x, 0.001f) // NaN fallback
+        assertEquals(0.98f, menu.y, 0.001f) // Clamped onto the screen
+        assertEquals(0.035f, menu.radius, 0.001f) // Negative fallback
+    }
+
+    @Test
+    fun testDeepCopyDoesNotShareMenuButton() {
+        val profile = GameProfile(id = "menu_profile", name = "Menu Profile", menuButton = MenuButtonConfig())
+        val copy = profile.deepCopy()
+        copy.menuButton!!.x = 0.5f
+        assertEquals(0.04f, profile.menuButton!!.x, 0.001f)
     }
 
     @Test

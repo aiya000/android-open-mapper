@@ -231,6 +231,9 @@
     <string name="overlay_btn_nudge">Micro-adjust</string>
     <string name="overlay_btn_hide_bar">👁️ Hide</string>
     <string name="overlay_btn_show_bar">▼ Tools</string>
+    <string name="overlay_btn_add_menu">➕ Menu</string>
+    <string name="overlay_menu_button">☰ MENU</string>
+    <string name="overlay_menu_title">☰ Overlay menu</string>
 
     <!-- Legacy / Compat -->
     <string name="shizuku_connected">Shizuku Service Connected</string>

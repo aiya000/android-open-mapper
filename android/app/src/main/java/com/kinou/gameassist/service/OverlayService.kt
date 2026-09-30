@@ -67,6 +67,11 @@ class OverlayService : LifecycleService() {
     private lateinit var engine: GamepadEngine
 
     private var currentProfile: GameProfile? = null
+        set(value) {
+            field = value
+            // Whether the menu opens from a button or the edge handle, and where, is per profile
+            edgeHandleView?.setMenuButton(value?.menuButton)
+        }
 
     // Overlay Views
     private var edgeHandleView: EdgeHandleOverlayView? = null
@@ -363,6 +368,7 @@ class OverlayService : LifecycleService() {
         )
 
         windowManager.addView(edgeHandleView, edgeHandleParams)
+        edgeHandleView?.setMenuButton(currentProfile?.menuButton)
     }
 
     @SuppressLint("ClickableViewAccessibility")

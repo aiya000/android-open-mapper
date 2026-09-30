@@ -54,7 +54,11 @@ data class GameProfile(
     var settings: GameSettings = GameSettings(),
 
     @SerialName("custom_screenshot_path")
-    var customScreenshotPath: String? = null
+    var customScreenshotPath: String? = null,
+
+    // null: the menu opens from the edge handle instead
+    @SerialName("menu_button")
+    var menuButton: MenuButtonConfig? = null
 )
 
 /**
@@ -66,5 +70,6 @@ fun GameProfile.deepCopy(): GameProfile = copy(
     joystick = joystick.copy(),
     camera = camera.copy(),
     buttons = buttons.map { it.copy() }.toMutableList(),
-    settings = settings.copy()
+    settings = settings.copy(),
+    menuButton = menuButton?.copy()
 )

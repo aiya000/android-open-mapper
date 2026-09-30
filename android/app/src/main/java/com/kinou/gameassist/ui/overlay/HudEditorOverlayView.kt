@@ -16,6 +16,7 @@ import com.kinou.gameassist.data.model.ButtonConfig
 import com.kinou.gameassist.data.model.ButtonMode
 import com.kinou.gameassist.data.model.ButtonRole
 import com.kinou.gameassist.data.model.GameProfile
+import com.kinou.gameassist.data.model.MenuButtonConfig
 import com.kinou.gameassist.data.repository.ScreenshotManager
 import java.util.UUID
 import kotlin.math.abs
@@ -48,11 +49,12 @@ class HudEditorOverlayView(
     }
 
     // Selection & Drag State
-    // selectedItem can be ButtonConfig, "JOYSTICK", "CAMERA", or null
+    // selectedItem can be ButtonConfig, "JOYSTICK", "CAMERA", "MENU", or null
     var selectedItem: Any? = null
     val selectedButton: ButtonConfig? get() = selectedItem as? ButtonConfig
     val isJoystickSelected: Boolean get() = selectedItem == "JOYSTICK"
     val isCameraSelected: Boolean get() = selectedItem == "CAMERA"
+    val isMenuSelected: Boolean get() = selectedItem == "MENU"
 
     private enum class CamHandle { NONE, BODY, NW, NE, SW, SE }
     private var activeCamHandle = CamHandle.NONE
@@ -91,6 +93,12 @@ class HudEditorOverlayView(
                 }
                 "JOYSTICK" -> {
                     profile.joystick.radius = (profile.joystick.radius * factor).coerceIn(0.050f, 0.260f)
+                    invalidate()
+                    return true
+                }
+                "MENU" -> {
+                    val menu = profile.menuButton ?: return false
+                    menu.radius = (menu.radius * factor).coerceIn(0.020f, 0.120f)
                     invalidate()
                     return true
                 }
@@ -183,6 +191,17 @@ class HudEditorOverlayView(
         color = 0xFFFFFFFF.toInt()
         style = Paint.Style.STROKE
         strokeWidth = 2.5f
+    }
+
+    private val menuItemPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xCC0A0E14.toInt() // Same dark card as the in-game menu button
+        style = Paint.Style.FILL
+    }
+
+    private val menuItemStroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = 0xFF00F0FF.toInt()
+        style = Paint.Style.STROKE
+        strokeWidth = 4f
     }
 
     // Reusable Paints (Zero allocation onDraw)
@@ -304,6 +323,7 @@ class HudEditorOverlayView(
     private val btnOpacRect = RectF()
     private val btnDetailsRect = RectF()
     private val btnAddRect = RectF()
+    private val btnAddMenuRect = RectF()
     private val btnShotRect = RectF()
     private val btnRemRect = RectF()
     private val btnShowRect = RectF()
@@ -320,7 +340,7 @@ class HudEditorOverlayView(
     private val touchSlop = android.view.ViewConfiguration.get(context).scaledTouchSlop
     private val scrollableTopBarRects = arrayOf(
         btnCloseRect, btnSaveRect, btnStrafeRect, btnRecoilRect, btnOpacRect,
-        btnDetailsRect, btnAddRect, btnShotRect, btnRemRect
+        btnDetailsRect, btnAddRect, btnAddMenuRect, btnShotRect, btnRemRect
     )
 
     /** Trims a scrolled top bar button to its visible part, so a hidden button cannot be tapped. */
@@ -542,6 +562,20 @@ class HudEditorOverlayView(
             }
         }
 
+        // 5b. Overlay Menu Button (none: the menu opens from the edge handle)
+        val menu = profile.menuButton
+        if (menu != null) {
+            val mx = menu.x * w
+            val my = menu.y * h
+            val mr = menu.radius * h
+            canvas.drawCircle(mx, my, mr, menuItemPaint)
+            canvas.drawCircle(mx, my, mr, menuItemStroke)
+            if (isMenuSelected) {
+                canvas.drawCircle(mx, my, mr + 8f, selectionRingPaint)
+            }
+            canvas.drawText(context.getString(R.string.overlay_menu_button), mx, my + 8f, textPaint)
+        }
+
         // 6. Top Bar UI Controls
         drawTopBar(canvas, w)
 
@@ -563,6 +597,7 @@ class HudEditorOverlayView(
             btnOpacRect.setEmpty()
             btnDetailsRect.setEmpty()
             btnAddRect.setEmpty()
+            btnAddMenuRect.setEmpty()
             btnShotRect.setEmpty()
             btnRemRect.setEmpty()
 
@@ -717,6 +752,23 @@ class HudEditorOverlayView(
         canvas.drawText(addLabel, btnAddRect.centerX(), btnAddRect.centerY() + 5f * density, uiBtnTextPaint)
         curRight -= (addW + btnSpacing)
 
+        // 6b. Button: ➕ Menu (a profile has at most one menu button)
+        if (profile.menuButton == null) {
+            val addMenuLabel = context.getString(R.string.overlay_btn_add_menu)
+            uiBtnTextPaint.color = 0xFF00F0FF.toInt()
+            uiBtnTextPaint.textSize = 14.5f * density
+            val addMenuW = max(80f * density, uiBtnTextPaint.measureText(addMenuLabel) + 20f * density)
+            btnAddMenuRect.set(curRight - addMenuW, btnTop, curRight, btnBottom)
+            uiBtnBgPaint.color = 0xFF1E2838.toInt()
+            uiBtnStrokePaint.color = 0xFF00F0FF.toInt()
+            canvas.drawRoundRect(btnAddMenuRect, btnRadius, btnRadius, uiBtnBgPaint)
+            canvas.drawRoundRect(btnAddMenuRect, btnRadius, btnRadius, uiBtnStrokePaint)
+            canvas.drawText(addMenuLabel, btnAddMenuRect.centerX(), btnAddMenuRect.centerY() + 5f * density, uiBtnTextPaint)
+            curRight -= (addMenuW + btnSpacing)
+        } else {
+            btnAddMenuRect.setEmpty()
+        }
+
         // 7. Button: 📸 Capture / Screenshot (si callback présent)
         if (onOpenGallery != null) {
             val shotLabel = if (screenshotBitmap != null) context.getString(R.string.btn_change_screenshot) else context.getString(R.string.btn_import_screenshot)
@@ -784,8 +836,8 @@ class HudEditorOverlayView(
 
         var rightX = barRight - 12f * density
 
-        // 1. Delete (if ButtonConfig)
-        if (selectedButton != null) {
+        // 1. Delete (a virtual button, or the menu button to go back to the edge handle)
+        if (selectedButton != null || isMenuSelected) {
             val delW = 84f * density
             btnDelRect.set(rightX - delW, btnTop, rightX, btnBottom)
             uiBtnBgPaint.color = 0xFFFF0055.toInt()
@@ -980,6 +1032,7 @@ class HudEditorOverlayView(
                 is ButtonConfig -> "🎯 ${item.label} [${item.gamepadButton.replace("BUTTON_", "")}]"
                 "JOYSTICK" -> "🕹️ Joystick LS"
                 "CAMERA" -> "🎥 Zone Caméra RS"
+                "MENU" -> context.getString(R.string.overlay_menu_title)
                 else -> ""
             }
             val availableLabelW = rightX - titleLeft - 8f * density
@@ -1047,6 +1100,13 @@ class HudEditorOverlayView(
                 // 2. Check Bottom Context Bar clicks (if active and details enabled)
                 if (selectedItem != null && showDetails) {
                     // Delete
+                    if (isMenuSelected && btnDelRect.contains(tx, ty)) {
+                        profile.menuButton = null
+                        selectedItem = null
+                        performHapticFeedback(HapticFeedbackConstants.REJECT)
+                        invalidate()
+                        return true
+                    }
                     if (selectedButton != null && btnDelRect.contains(tx, ty)) {
                         profile.buttons.remove(selectedButton)
                         selectedItem = null
@@ -1199,7 +1259,22 @@ class HudEditorOverlayView(
                     }
                 }
 
-                // 4. Check Buttons
+                // 4. Check the Menu Button (drawn above the virtual buttons)
+                val menu = profile.menuButton
+                val mx = (menu?.x ?: 0f) * w
+                val my = (menu?.y ?: 0f) * h
+                if (menu != null && hypot(tx - mx, ty - my) <= menu.radius * h * 1.25f) {
+                    selectedItem = "MENU"
+                    draggedItem = "MENU"
+                    dragOffsetX = tx - mx
+                    dragOffsetY = ty - my
+                    isLearning = false
+                    performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                    invalidate()
+                    return true
+                }
+
+                // 4b. Check Buttons
                 for (b in profile.buttons.reversed()) {
                     val bx = b.x * w
                     val by = b.y * h
@@ -1293,6 +1368,13 @@ class HudEditorOverlayView(
                     "JOYSTICK" -> {
                         profile.joystick.centerX = ((tx - dragOffsetX) / w).coerceIn(0.05f, 0.50f)
                         profile.joystick.centerY = ((ty - dragOffsetY) / h).coerceIn(0.05f, 0.95f)
+                        invalidate()
+                    }
+                    "MENU" -> {
+                        profile.menuButton?.let { menu ->
+                            menu.x = ((tx - dragOffsetX) / w).coerceIn(0.02f, 0.98f)
+                            menu.y = ((ty - dragOffsetY) / h).coerceIn(0.02f, 0.98f)
+                        }
                         invalidate()
                     }
                     "CAMERA" -> {
@@ -1427,6 +1509,16 @@ class HudEditorOverlayView(
             return
         }
 
+        // ➕ Menu Button
+        if (profile.menuButton == null && btnAddMenuRect.contains(tx, ty)) {
+            profile.menuButton = MenuButtonConfig()
+            selectedItem = "MENU"
+            isLearning = false
+            performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            invalidate()
+            return
+        }
+
         // 📸 Capture Screenshot
         if (onOpenGallery != null && btnShotRect.contains(tx, ty)) {
             performHapticFeedback(HapticFeedbackConstants.CONFIRM)
@@ -1452,6 +1544,10 @@ class HudEditorOverlayView(
                 profile.joystick.centerX = (profile.joystick.centerX + dx).coerceIn(0.05f, 0.50f)
                 profile.joystick.centerY = (profile.joystick.centerY + dy).coerceIn(0.05f, 0.95f)
             }
+            "MENU" -> profile.menuButton?.let { menu ->
+                menu.x = (menu.x + dx).coerceIn(0.02f, 0.98f)
+                menu.y = (menu.y + dy).coerceIn(0.02f, 0.98f)
+            }
             "CAMERA" -> {
                 val c = profile.camera
                 val w = c.rectX2 - c.rectX1
@@ -1473,6 +1569,9 @@ class HudEditorOverlayView(
             }
             "JOYSTICK" -> {
                 profile.joystick.radius = (profile.joystick.radius * factor).coerceIn(0.050f, 0.260f)
+            }
+            "MENU" -> profile.menuButton?.let { menu ->
+                menu.radius = (menu.radius * factor).coerceIn(0.020f, 0.120f)
             }
             "CAMERA" -> {
                 val c = profile.camera
