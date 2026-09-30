@@ -75,6 +75,10 @@ class HudEditorOverlayView(
     private var liveRsX = 0f
     private var liveRsY = 0f
 
+    // Seuils stick → bouton directionnel (LS_* / RS_*) : apprentissage plus strict que l'affichage live
+    private val STICK_LEARN_THRESHOLD = 0.6f
+    private val STICK_LIVE_THRESHOLD = 0.55f
+
     // Scale Gesture Detector (Pinch-to-Resize)
     private val scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
@@ -1484,6 +1488,11 @@ class HudEditorOverlayView(
         val ltVal = maxOf(event.getAxisValue(MotionEvent.AXIS_LTRIGGER), event.getAxisValue(MotionEvent.AXIS_BRAKE))
         val rtVal = maxOf(event.getAxisValue(MotionEvent.AXIS_RTRIGGER), event.getAxisValue(MotionEvent.AXIS_GAS))
 
+        val rawLsX = event.getAxisValue(MotionEvent.AXIS_X)
+        val rawLsY = event.getAxisValue(MotionEvent.AXIS_Y)
+        val rawRsX = if (event.getAxisValue(MotionEvent.AXIS_Z) != 0f) event.getAxisValue(MotionEvent.AXIS_Z) else event.getAxisValue(MotionEvent.AXIS_RX)
+        val rawRsY = if (event.getAxisValue(MotionEvent.AXIS_RZ) != 0f) event.getAxisValue(MotionEvent.AXIS_RZ) else event.getAxisValue(MotionEvent.AXIS_RY)
+
         val boundKey = when {
             hatY <= -0.4f -> "DPAD_UP"
             hatY >= 0.4f -> "DPAD_DOWN"
@@ -1491,7 +1500,8 @@ class HudEditorOverlayView(
             hatX >= 0.4f -> "DPAD_RIGHT"
             ltVal > 0.50f -> "BUTTON_L2"
             rtVal > 0.50f -> "BUTTON_R2"
-            else -> null
+            else -> stickDirectionKey("LS", rawLsX, rawLsY, STICK_LEARN_THRESHOLD)
+                ?: stickDirectionKey("RS", rawRsX, rawRsY, STICK_LEARN_THRESHOLD)
         }
 
         if (isLearning && selectedButton != null && boundKey != null) {
@@ -1513,18 +1523,37 @@ class HudEditorOverlayView(
         if (rtVal > 0.40f) activeGamepadKeys.add("BUTTON_R2") else activeGamepadKeys.remove("BUTTON_R2")
 
         // Live Sticks tracking
-        val rawLsX = event.getAxisValue(MotionEvent.AXIS_X)
-        val rawLsY = event.getAxisValue(MotionEvent.AXIS_Y)
         liveLsX = if (abs(rawLsX) > 0.08f) rawLsX else 0f
         liveLsY = if (abs(rawLsY) > 0.08f) rawLsY else 0f
-
-        val rawRsX = if (event.getAxisValue(MotionEvent.AXIS_Z) != 0f) event.getAxisValue(MotionEvent.AXIS_Z) else event.getAxisValue(MotionEvent.AXIS_RX)
-        val rawRsY = if (event.getAxisValue(MotionEvent.AXIS_RZ) != 0f) event.getAxisValue(MotionEvent.AXIS_RZ) else event.getAxisValue(MotionEvent.AXIS_RY)
         liveRsX = if (abs(rawRsX) > 0.08f) rawRsX else 0f
         liveRsY = if (abs(rawRsY) > 0.08f) rawRsY else 0f
 
+        // Live stick directions tracking (boutons LS_* / RS_*)
+        trackStickDirections("LS", rawLsX, rawLsY)
+        trackStickDirections("RS", rawRsX, rawRsY)
+
         invalidate()
         return super.onGenericMotionEvent(event)
+    }
+
+    private fun trackStickDirections(stick: String, x: Float, y: Float) {
+        if (-y > STICK_LIVE_THRESHOLD) activeGamepadKeys.add("${stick}_UP") else activeGamepadKeys.remove("${stick}_UP")
+        if (y > STICK_LIVE_THRESHOLD) activeGamepadKeys.add("${stick}_DOWN") else activeGamepadKeys.remove("${stick}_DOWN")
+        if (-x > STICK_LIVE_THRESHOLD) activeGamepadKeys.add("${stick}_LEFT") else activeGamepadKeys.remove("${stick}_LEFT")
+        if (x > STICK_LIVE_THRESHOLD) activeGamepadKeys.add("${stick}_RIGHT") else activeGamepadKeys.remove("${stick}_RIGHT")
+    }
+
+    /**
+     * Direction dominante d'un stick au-delà du seuil ("LS_UP", "RS_LEFT", ...), ou null.
+     * Axe Y négatif vers le haut (convention Android).
+     */
+    private fun stickDirectionKey(stick: String, x: Float, y: Float, threshold: Float): String? {
+        if (maxOf(abs(x), abs(y)) < threshold) return null
+        return if (abs(y) >= abs(x)) {
+            if (y < 0f) "${stick}_UP" else "${stick}_DOWN"
+        } else {
+            if (x < 0f) "${stick}_LEFT" else "${stick}_RIGHT"
+        }
     }
 
     fun releaseBitmap() {

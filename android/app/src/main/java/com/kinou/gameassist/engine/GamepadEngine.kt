@@ -46,6 +46,7 @@ class GamepadEngine(
         hatRight = false
         isSelectHeld = false
         selectUsedInCombo = false
+        stickDirectionPressed.fill(false)
         pressedRawButtons.clear()
 
         movementProcessor.release()
@@ -111,7 +112,23 @@ class GamepadEngine(
 
     companion object {
         const val TRIGGER_THRESHOLD = 0.30f
+
+        // Stick → bouton directionnel : hystérésis pour éviter le rebond autour du seuil
+        const val STICK_BUTTON_PRESS_THRESHOLD = 0.55f
+        const val STICK_BUTTON_RELEASE_THRESHOLD = 0.35f
+
+        // Indexés par stickDirectionPressed : LS (0..3) puis RS (4..7), ordre UP, DOWN, LEFT, RIGHT
+        val STICK_DIRECTION_KEYS = arrayOf(
+            "LS_UP", "LS_DOWN", "LS_LEFT", "LS_RIGHT",
+            "RS_UP", "RS_DOWN", "RS_LEFT", "RS_RIGHT"
+        )
     }
+
+    // Quand un bouton virtuel est assigné à une direction d'un stick, ce stick devient un
+    // "stick à boutons" : il ne pilote plus le joystick / la caméra, seulement les boutons.
+    @Volatile private var leftStickAsButtons = false
+    @Volatile private var rightStickAsButtons = false
+    private val stickDirectionPressed = BooleanArray(STICK_DIRECTION_KEYS.size)
 
     private val pressedRawButtons = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
     @Volatile private var engineThread: Thread? = null
@@ -205,6 +222,44 @@ class GamepadEngine(
         cameraProcessor.config = profile.camera.copy()
         buttonProcessor.updateButtons(profile.buttons)
         buttonProcessor.updateSettings(profile.settings)
+
+        releaseStickDirections()
+        leftStickAsButtons = profile.buttons.any { it.gamepadButton.trim().uppercase().startsWith("LS_") }
+        rightStickAsButtons = profile.buttons.any { it.gamepadButton.trim().uppercase().startsWith("RS_") }
+    }
+
+    private fun releaseStickDirections() {
+        for (i in stickDirectionPressed.indices) {
+            if (stickDirectionPressed[i]) {
+                stickDirectionPressed[i] = false
+                onRawButtonUp(STICK_DIRECTION_KEYS[i])
+            }
+        }
+    }
+
+    /**
+     * Convertit la position d'un stick en appuis LS_* / RS_* (appelé depuis la boucle engine,
+     * sans allocation : les noms de touches sont des constantes).
+     * Convention Android : l'axe Y est négatif vers le haut.
+     */
+    private fun updateStickDirections(x: Float, y: Float, baseIndex: Int) {
+        updateStickDirection(baseIndex, -y)     // UP
+        updateStickDirection(baseIndex + 1, y)  // DOWN
+        updateStickDirection(baseIndex + 2, -x) // LEFT
+        updateStickDirection(baseIndex + 3, x)  // RIGHT
+    }
+
+    private fun updateStickDirection(index: Int, value: Float) {
+        val wasPressed = stickDirectionPressed[index]
+        val isPressed = if (wasPressed) {
+            value > STICK_BUTTON_RELEASE_THRESHOLD
+        } else {
+            value > STICK_BUTTON_PRESS_THRESHOLD
+        }
+        if (isPressed == wasPressed) return
+        stickDirectionPressed[index] = isPressed
+        if (isPressed) onRawButtonDown(STICK_DIRECTION_KEYS[index])
+        else onRawButtonUp(STICK_DIRECTION_KEYS[index])
     }
 
     fun start() {
@@ -252,12 +307,26 @@ class GamepadEngine(
 
                 while (isRunning) {
                     try {
+                        // Lecture unique par frame des sticks (écrits par d'autres threads)
+                        val curLx = lx
+                        val curLy = ly
+                        val curRx = rx
+                        val curRy = ry
+                        val lsAsButtons = leftStickAsButtons
+                        val rsAsButtons = rightStickAsButtons
+                        if (lsAsButtons) updateStickDirections(curLx, curLy, 0)
+                        if (rsAsButtons) updateStickDirections(curRx, curRy, 4)
+                        val moveX = if (lsAsButtons) 0f else curLx
+                        val moveY = if (lsAsButtons) 0f else curLy
+                        val camX = if (rsAsButtons) 0f else curRx
+                        val camY = if (rsAsButtons) 0f else curRy
+
                         val camCfg = cameraProcessor.config
                         val isFiring = rtPressed || buttonProcessor.isFireActive()
                         val isAds = ltPressed || buttonProcessor.isAdsActive()
-                        val isAimingOrCamera = isAds || isFiring || (kotlin.math.hypot(rx.toDouble(), ry.toDouble()) > camCfg.deadzone)
-                        movementProcessor.process(lx, ly, isAimingOrCamera, isFiring = isFiring)
-                        cameraProcessor.process(rx, ry, isAiming = isAds, isFiring = isFiring)
+                        val isAimingOrCamera = isAds || isFiring || (kotlin.math.hypot(camX.toDouble(), camY.toDouble()) > camCfg.deadzone)
+                        movementProcessor.process(moveX, moveY, isAimingOrCamera, isFiring = isFiring)
+                        cameraProcessor.process(camX, camY, isAiming = isAds, isFiring = isFiring)
 
                         val nowNanos = System.nanoTime()
                         buttonProcessor.processPendingTaps(nowNanos)
