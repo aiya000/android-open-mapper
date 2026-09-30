@@ -320,4 +320,66 @@
     <string name="gamepad_rumble_detected">Vibração física detectada (%1$d motores)</string>
     <string name="gamepad_rumble_not_supported">Vibração não suportada por este controle</string>
     <string name="gamepad_none_connected">Nenhum controle conectado</string>
+
+    <!-- Home screen and app update -->
+    <string name="home_launch_not_installed">%1$s não está instalado</string>
+    <string name="home_launch_failed">Não foi possível abrir o aplicativo</string>
+    <string name="update_install_failed">Falha na instalação: %1$s</string>
+    <string name="error_unknown">Erro desconhecido</string>
+    <string name="update_error_invalid_url">URL de download do APK inválida ou a versão não inclui nenhum APK</string>
+    <string name="update_error_path_traversal">Tentativa de travessia de diretório detectada: %1$s</string>
+    <string name="update_error_insecure_url">URL não segura rejeitada: %1$s</string>
+    <string name="update_error_untrusted_host">Servidor de download não permitido: %1$s</string>
+    <string name="update_error_redirect_no_location">Redirecionamento sem cabeçalho Location</string>
+    <string name="update_error_insecure_redirect">Redirecionamento não seguro bloqueado: %1$s</string>
+    <string name="update_error_http">Erro de rede HTTP %1$d</string>
+    <string name="update_error_no_stream">Fluxo de download indisponível</string>
+    <string name="update_error_checksum">Falha na verificação de integridade do APK baixado</string>
+    <string name="update_error_apk_missing">Arquivo APK não encontrado ou incompleto</string>
+    <string name="update_error_apk_corrupt">O arquivo APK baixado está corrompido ou incompleto</string>
+    <string name="update_error_package_mismatch">O pacote do APK (%1$s) não corresponde a este aplicativo (%2$s).</string>
+    <string name="update_error_signature_mismatch">Falha na verificação criptográfica: o certificado de assinatura do APK de atualização não corresponde ao aplicativo instalado.</string>
+
+    <!-- Gamepad test screen -->
+    <string name="test_back_paddles_title">BOTÕES TRASEIROS (ELITE / SCUF / M1-M4)</string>
+    <string name="polling_idle_hint">🕹️ Mova os analógicos ou pressione botões…</string>
+    <string name="polling_percent_of_1000">%1$d%% de 1000Hz</string>
+    <string name="polling_peak_caption">Máximo registrado</string>
+    <string name="polling_latency_caption">Intervalo médio</string>
+    <string name="polling_jitter_caption">Desvio padrão dos intervalos</string>
+    <string name="polling_live_graph_title">📊 Frequência em tempo real</string>
+    <string name="polling_packets">Pacotes: %1$d</string>
+    <string name="gamepad_rumble_pwm_supported">%1$s • Controle PWM suportado</string>
+    <string name="rumble_test_patterns_title">Padrões de vibração tátil</string>
+    <string name="rumble_test_stop_burst_btn">⏹ Parar rajada</string>
+
+    <!-- Community screen and community server errors -->
+    <string name="community_unreachable">Não foi possível acessar a comunidade</string>
+    <string name="community_publish_success">Perfil publicado no Hub da Comunidade!</string>
+    <string name="community_publish_error">Erro: %1$s</string>
+    <string name="community_import_btn">Importar</string>
+    <string name="community_by_author">Por %1$s</string>
+    <string name="community_publish_title">Compartilhar um perfil</string>
+    <string name="community_publish_select">Selecione o perfil local para publicar:</string>
+    <string name="community_publish_field_title">Título do perfil (ex.: CODM Pro Flick 180°)</string>
+    <string name="community_publish_field_author">Seu apelido / autor</string>
+    <string name="community_publish_field_desc">Descrição / dicas de jogo (opcional)</string>
+    <string name="community_publish_field_controller">Tipo de controle recomendado</string>
+    <string name="community_publish_controller_default">Xbox / PS5 / Genérico</string>
+    <string name="community_publish_btn">Publicar</string>
+    <string name="community_publish_cancel">Cancelar</string>
+    <string name="community_error_no_token">A resposta do servidor não contém token</string>
+    <string name="community_error_invalid_response">Resposta inválida do servidor</string>
+    <string name="community_error_profile_not_found">Perfil não encontrado</string>
+    <string name="community_error_vote_rejected">Voto recusado</string>
+    <string name="community_error_publish_rejected">Publicação recusada</string>
+    <string name="community_error_server">Erro do servidor (%1$d)</string>
+    <string name="community_error_ssl">O certificado SSL do Cloudflare está sendo inicializado…\nIsso leva alguns minutos na primeira configuração. Tente novamente em instantes!</string>
+    <string name="community_error_unreachable">Não foi possível conectar ao servidor. Verifique sua conexão com a Internet.</string>
+    <string name="community_error_network_unknown">Erro de rede desconhecido</string>
+
+    <!-- Profile names and the visual editor -->
+    <string name="profile_name_imported">%1$s (Importado)</string>
+    <string name="profile_name_copy">%1$s (Cópia)</string>
+    <string name="profile_saved_toast">Perfil salvo!</string>
 </resources>

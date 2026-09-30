@@ -3,6 +3,7 @@ package com.kinou.gameassist.data.community
 import android.content.Context
 import android.os.Build
 import com.kinou.gameassist.BuildConfig
+import com.kinou.gameassist.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -106,7 +107,7 @@ class CommunityApiClient(private val context: Context) {
             if (responseCode in 200..299) {
                 val responseJson = conn.inputStream.bufferedReader().use(BufferedReader::readText)
                 val response = json.decodeFromString<RegisterResponse>(responseJson)
-                response.deviceToken ?: throw Exception("Token absent de la réponse serveur")
+                response.deviceToken ?: throw Exception(context.getString(R.string.community_error_no_token))
             } else {
                 val rawErr = conn.errorStream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
                 throw Exception(extractServerErrorMessage(rawErr, responseCode))
@@ -196,7 +197,7 @@ class CommunityApiClient(private val context: Context) {
                     profilesCache[cacheKey] = CacheEntry(filtered, now)
                     Result.success(filtered)
                 } else {
-                    Result.failure(Exception(response.error ?: "Réponse invalide du serveur"))
+                    Result.failure(Exception(response.error ?: context.getString(R.string.community_error_invalid_response)))
                 }
             } else {
                 val rawErr = conn.errorStream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
@@ -243,7 +244,7 @@ class CommunityApiClient(private val context: Context) {
                     profileDetailCache[profileId] = CacheEntry(response.profile, now)
                     Result.success(response.profile)
                 } else {
-                    Result.failure(Exception(response.error ?: "Profil introuvable"))
+                    Result.failure(Exception(response.error ?: context.getString(R.string.community_error_profile_not_found)))
                 }
             } else {
                 val rawErr = conn.errorStream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
@@ -289,7 +290,7 @@ class CommunityApiClient(private val context: Context) {
                 if (response.success) {
                     Result.success(response)
                 } else {
-                    Result.failure(Exception(response.error ?: "Vote refusé"))
+                    Result.failure(Exception(response.error ?: context.getString(R.string.community_error_vote_rejected)))
                 }
             } else {
                 val rawErr = conn.errorStream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
@@ -364,7 +365,7 @@ class CommunityApiClient(private val context: Context) {
                     clearCache()
                     Result.success(response)
                 } else {
-                    Result.failure(Exception(response.error ?: "Publication refusée"))
+                    Result.failure(Exception(response.error ?: context.getString(R.string.community_error_publish_rejected)))
                 }
             } else {
                 val rawErr = conn.errorStream?.bufferedReader()?.use(BufferedReader::readText) ?: ""
@@ -434,20 +435,21 @@ class CommunityApiClient(private val context: Context) {
     }
 
     private fun extractServerErrorMessage(rawErr: String, responseCode: Int): String {
-        if (rawErr.isBlank()) return "Erreur serveur ($responseCode)"
+        val genericError = context.getString(R.string.community_error_server, responseCode)
+        if (rawErr.isBlank()) return genericError
         return try {
             val element = json.parseToJsonElement(rawErr)
             val serverError = element.jsonObject["error"]?.jsonPrimitive?.contentOrNull
             if (!serverError.isNullOrBlank()) {
                 serverError
             } else {
-                "Erreur serveur ($responseCode)"
+                genericError
             }
         } catch (_: Exception) {
             if (rawErr.length < 150 && !rawErr.startsWith("<")) {
                 rawErr
             } else {
-                "Erreur serveur ($responseCode)"
+                genericError
             }
         }
     }
@@ -455,11 +457,11 @@ class CommunityApiClient(private val context: Context) {
     private fun formatFriendlyError(e: Throwable): Exception {
         val msg = e.message ?: ""
         return if (msg.contains("SSL", ignoreCase = true) || msg.contains("handshake", ignoreCase = true) || msg.contains("protocol", ignoreCase = true)) {
-            Exception("Initialisation du certificat SSL Cloudflare en cours...\nCela prend quelques minutes lors de la première configuration. Réessayez dans un instant !")
+            Exception(context.getString(R.string.community_error_ssl))
         } else if (msg.contains("Unable to resolve host", ignoreCase = true) || msg.contains("timeout", ignoreCase = true)) {
-            Exception("Impossible de joindre le serveur. Vérifiez votre connexion Internet.")
+            Exception(context.getString(R.string.community_error_unreachable))
         } else {
-            Exception(e.localizedMessage ?: "Erreur réseau inconnue")
+            Exception(e.localizedMessage ?: context.getString(R.string.community_error_network_unknown))
         }
     }
 }

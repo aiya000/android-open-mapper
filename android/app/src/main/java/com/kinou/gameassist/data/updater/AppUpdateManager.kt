@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
+import com.kinou.gameassist.R
 import java.security.MessageDigest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -153,7 +154,7 @@ object AppUpdateManager {
         onProgress: (progress: Float, downloadedBytes: Long, totalBytes: Long) -> Unit
     ): Result<File> = withContext(Dispatchers.IO) {
         if (downloadUrl.isBlank() || (!downloadUrl.endsWith(".apk", ignoreCase = true) && !downloadUrl.contains(".apk", ignoreCase = true))) {
-            return@withContext Result.failure(IllegalArgumentException("URL de téléchargement APK invalide ou aucun package APK disponible dans la release"))
+            return@withContext Result.failure(IllegalArgumentException(context.getString(R.string.update_error_invalid_url)))
         }
 
         var connection: HttpURLConnection? = null
@@ -165,7 +166,7 @@ object AppUpdateManager {
             val safeFileName = sanitizeApkFileName(targetFileName)
             val candidateFile = File(updateDir, safeFileName)
             if (!candidateFile.canonicalPath.startsWith(updateDir.canonicalPath)) {
-                return@withContext Result.failure(SecurityException("Tentative de traversée de répertoire détectée : $targetFileName"))
+                return@withContext Result.failure(SecurityException(context.getString(R.string.update_error_path_traversal, targetFileName)))
             }
             outputFile = candidateFile
             if (outputFile.exists()) {
@@ -182,13 +183,13 @@ object AppUpdateManager {
             while (redirectCount < maxRedirects) {
                 val url = URL(currentUrl)
                 if (!url.protocol.equals("https", ignoreCase = true)) {
-                    return@withContext Result.failure(SecurityException("URL non sécurisée rejetée : $currentUrl"))
+                    return@withContext Result.failure(SecurityException(context.getString(R.string.update_error_insecure_url, currentUrl)))
                 }
 
                 val host = (url.host ?: "").lowercase()
                 val isTrusted = trustedHostSuffixes.any { host == it || host.endsWith(".$it") }
                 if (!isTrusted) {
-                    return@withContext Result.failure(SecurityException("Hôte de téléchargement non autorisé : ${url.host}"))
+                    return@withContext Result.failure(SecurityException(context.getString(R.string.update_error_untrusted_host, url.host)))
                 }
 
                 connection = (url.openConnection() as HttpURLConnection).apply {
@@ -205,11 +206,11 @@ object AppUpdateManager {
                     status == HttpURLConnection.HTTP_SEE_OTHER ||
                     status == 307 || status == 308) {
                     val newUrl = connection.getHeaderField("Location")
-                        ?: return@withContext Result.failure(SecurityException("Redirection sans en-tête Location"))
+                        ?: return@withContext Result.failure(SecurityException(context.getString(R.string.update_error_redirect_no_location)))
                     val targetUrl = URL(URL(currentUrl), newUrl)
 
                     if (!targetUrl.protocol.equals("https", ignoreCase = true)) {
-                        return@withContext Result.failure(SecurityException("Redirection non sécurisée bloquée : $targetUrl"))
+                        return@withContext Result.failure(SecurityException(context.getString(R.string.update_error_insecure_redirect, targetUrl.toString())))
                     }
 
                     currentUrl = targetUrl.toString()
@@ -222,11 +223,11 @@ object AppUpdateManager {
 
             val responseCode = connection?.responseCode ?: -1
             if (responseCode !in 200..299) {
-                return@withContext Result.failure(Exception("Erreur réseau HTTP $responseCode"))
+                return@withContext Result.failure(Exception(context.getString(R.string.update_error_http, responseCode)))
             }
 
             val totalBytes = connection?.contentLengthLong ?: -1L
-            inputStream = connection?.inputStream ?: return@withContext Result.failure(Exception("Flux de téléchargement inaccessible"))
+            inputStream = connection?.inputStream ?: return@withContext Result.failure(Exception(context.getString(R.string.update_error_no_stream)))
             outputStream = FileOutputStream(outputFile)
 
             val buffer = ByteArray(16 * 1024)
@@ -257,7 +258,7 @@ object AppUpdateManager {
                 val actual = calculateFileSha256(outputFile)
                 if (actual.isBlank() || !actual.equals(expectedSha256, ignoreCase = true)) {
                     outputFile.delete()
-                    return@withContext Result.failure(Exception("Échec de vérification d'intégrité de l'APK téléchargé"))
+                    return@withContext Result.failure(Exception(context.getString(R.string.update_error_checksum)))
                 }
             }
 
@@ -356,22 +357,22 @@ object AppUpdateManager {
     suspend fun installApk(context: Context, apkFile: File): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             if (!apkFile.exists() || apkFile.length() <= 0L) {
-                return@withContext Result.failure(FileNotFoundException("Fichier APK introuvable ou incomplet"))
+                return@withContext Result.failure(FileNotFoundException(context.getString(R.string.update_error_apk_missing)))
             }
 
             // 1. Verify that the APK is structurally valid and targets the correct package name
             val archiveInfo = context.packageManager.getPackageArchiveInfo(apkFile.absolutePath, 0)
             if (archiveInfo == null || archiveInfo.packageName.isNullOrBlank()) {
-                return@withContext Result.failure(IllegalStateException("Le fichier APK téléchargé est corrompu ou incomplet"))
+                return@withContext Result.failure(IllegalStateException(context.getString(R.string.update_error_apk_corrupt)))
             }
             if (archiveInfo.packageName != context.packageName) {
-                return@withContext Result.failure(SecurityException("Le package cible de l'APK (${archiveInfo.packageName}) ne correspond pas à l'application courante (${context.packageName})."))
+                return@withContext Result.failure(SecurityException(context.getString(R.string.update_error_package_mismatch, archiveInfo.packageName, context.packageName)))
             }
 
             // 2. Vérification cryptographique : l'APK téléchargé doit être signé par le même certificat que l'app installée
             val signaturesMatch = verifyApkSignatureAgainstCurrentApp(context, apkFile)
             if (!signaturesMatch) {
-                return@withContext Result.failure(SecurityException("Échec de vérification cryptographique : le certificat de signature de la mise à jour APK ne correspond pas à l'application installée."))
+                return@withContext Result.failure(SecurityException(context.getString(R.string.update_error_signature_mismatch)))
             }
 
             withContext(Dispatchers.Main) {

@@ -38,7 +38,7 @@ object DeviceTokenStore {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Throwable) {
-            Log.w(TAG, "KeyStore inaccessible ou corrompu, purge et tentative de réinitialisation...", e)
+            Log.w(TAG, "KeyStore unavailable or corrupted; purging and retrying initialization...", e)
             // 2. En cas de clé corrompue (OEM / MAJ OS), purge du fichier chiffré, suppression de l'alias KeyStore et réessai
             try {
                 appContext.deleteSharedPreferences(PREFS)
@@ -48,7 +48,7 @@ object DeviceTokenStore {
                         keyStore.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS)
                     }
                 } catch (ksEx: Throwable) {
-                    Log.w(TAG, "Impossible de purger l'alias AndroidKeyStore", ksEx)
+                    Log.w(TAG, "Could not purge the AndroidKeyStore alias", ksEx)
                 }
 
                 val masterKey = MasterKey.Builder(appContext)
@@ -63,7 +63,7 @@ object DeviceTokenStore {
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
                 )
             } catch (fallbackEx: Throwable) {
-                Log.e(TAG, "Échec du chiffrement matériel, bascule sur SharedPreferences standard sécurisées en MODE_PRIVATE", fallbackEx)
+                Log.e(TAG, "Hardware-backed encryption failed; falling back to standard SharedPreferences in MODE_PRIVATE", fallbackEx)
                 // 3. Fallback ultime : SharedPreferences privées standard (garantit 0 crash)
                 appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             }
@@ -74,7 +74,7 @@ object DeviceTokenStore {
         return try {
             getPrefs(context).getString(KEY, null)
         } catch (e: Throwable) {
-            Log.e(TAG, "Erreur lors de la lecture du device token", e)
+            Log.e(TAG, "Failed to read the device token", e)
             null
         }
     }
@@ -83,7 +83,7 @@ object DeviceTokenStore {
         try {
             getPrefs(context).edit().putString(KEY, token).apply()
         } catch (e: Throwable) {
-            Log.e(TAG, "Erreur lors de la sauvegarde du device token", e)
+            Log.e(TAG, "Failed to save the device token", e)
         }
     }
 }

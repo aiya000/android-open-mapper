@@ -311,4 +311,66 @@
     <string name="visual_editor_hint">Déplacez, redimensionnez et alignez vos touches directement sur les icônes de votre jeu.</string>
     <string name="visual_editor_no_screenshot_hint">📸 Touchez « Importer Capture » pour charger une capture d\'écran de votre jeu et disposer vos touches dessus !</string>
     <string name="visual_editor_bg_opacity">Fond : %1$d%%</string>
+
+    <!-- Home screen and app update -->
+    <string name="home_launch_not_installed">%1$s n\'est pas installé</string>
+    <string name="home_launch_failed">Impossible de lancer l\'application</string>
+    <string name="update_install_failed">Échec de l\'installation : %1$s</string>
+    <string name="error_unknown">Erreur inconnue</string>
+    <string name="update_error_invalid_url">URL de téléchargement APK invalide ou aucun package APK disponible dans la release</string>
+    <string name="update_error_path_traversal">Tentative de traversée de répertoire détectée : %1$s</string>
+    <string name="update_error_insecure_url">URL non sécurisée rejetée : %1$s</string>
+    <string name="update_error_untrusted_host">Hôte de téléchargement non autorisé : %1$s</string>
+    <string name="update_error_redirect_no_location">Redirection sans en-tête Location</string>
+    <string name="update_error_insecure_redirect">Redirection non sécurisée bloquée : %1$s</string>
+    <string name="update_error_http">Erreur réseau HTTP %1$d</string>
+    <string name="update_error_no_stream">Flux de téléchargement inaccessible</string>
+    <string name="update_error_checksum">Échec de vérification d\'intégrité de l\'APK téléchargé</string>
+    <string name="update_error_apk_missing">Fichier APK introuvable ou incomplet</string>
+    <string name="update_error_apk_corrupt">Le fichier APK téléchargé est corrompu ou incomplet</string>
+    <string name="update_error_package_mismatch">Le package cible de l\'APK (%1$s) ne correspond pas à l\'application courante (%2$s).</string>
+    <string name="update_error_signature_mismatch">Échec de vérification cryptographique : le certificat de signature de la mise à jour APK ne correspond pas à l\'application installée.</string>
+
+    <!-- Gamepad test screen -->
+    <string name="test_back_paddles_title">PALETTES ARRIÈRE (ELITE / SCUF / M1-M4)</string>
+    <string name="polling_idle_hint">🕹️ Bougez les joysticks ou appuyez sur des touches…</string>
+    <string name="polling_percent_of_1000">%1$d%% de 1000Hz</string>
+    <string name="polling_peak_caption">Max enregistré</string>
+    <string name="polling_latency_caption">Intervalle moyen</string>
+    <string name="polling_jitter_caption">Écart-type deltas</string>
+    <string name="polling_live_graph_title">📊 Flux de Fréquence en Direct</string>
+    <string name="polling_packets">Paquets : %1$d</string>
+    <string name="gamepad_rumble_pwm_supported">%1$s • Contrôle PWM supporté</string>
+    <string name="rumble_test_patterns_title">Motifs de vibration tactiles</string>
+    <string name="rumble_test_stop_burst_btn">⏹ Arrêter Rafale</string>
+
+    <!-- Community screen and community server errors -->
+    <string name="community_unreachable">Impossible de joindre la communauté</string>
+    <string name="community_publish_success">Profil publié sur le Hub Communautaire !</string>
+    <string name="community_publish_error">Erreur : %1$s</string>
+    <string name="community_import_btn">Importer</string>
+    <string name="community_by_author">Par %1$s</string>
+    <string name="community_publish_title">Partager un Profil</string>
+    <string name="community_publish_select">Sélectionnez le profil local à publier :</string>
+    <string name="community_publish_field_title">Titre du profil (ex: CODM Pro Flick 180°)</string>
+    <string name="community_publish_field_author">Votre pseudo / auteur</string>
+    <string name="community_publish_field_desc">Description / conseils de jeu (optionnel)</string>
+    <string name="community_publish_field_controller">Type de manette conseillée</string>
+    <string name="community_publish_controller_default">Xbox / PS5 / Générique</string>
+    <string name="community_publish_btn">Publier</string>
+    <string name="community_publish_cancel">Annuler</string>
+    <string name="community_error_no_token">Token absent de la réponse serveur</string>
+    <string name="community_error_invalid_response">Réponse invalide du serveur</string>
+    <string name="community_error_profile_not_found">Profil introuvable</string>
+    <string name="community_error_vote_rejected">Vote refusé</string>
+    <string name="community_error_publish_rejected">Publication refusée</string>
+    <string name="community_error_server">Erreur serveur (%1$d)</string>
+    <string name="community_error_ssl">Initialisation du certificat SSL Cloudflare en cours…\nCela prend quelques minutes lors de la première configuration. Réessayez dans un instant !</string>
+    <string name="community_error_unreachable">Impossible de joindre le serveur. Vérifiez votre connexion Internet.</string>
+    <string name="community_error_network_unknown">Erreur réseau inconnue</string>
+
+    <!-- Profile names and the visual editor -->
+    <string name="profile_name_imported">%1$s (Importé)</string>
+    <string name="profile_name_copy">%1$s (Copie)</string>
+    <string name="profile_saved_toast">Profil sauvegardé !</string>
 </resources>

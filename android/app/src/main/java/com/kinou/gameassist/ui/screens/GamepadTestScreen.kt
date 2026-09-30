@@ -677,7 +677,7 @@ fun RealisticGamepadVisualizer(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "PALETTES ARRIÈRE (ELITE / SCUF / M1-M4)",
+                    text = stringResource(R.string.test_back_paddles_title),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextSecondary
@@ -1267,7 +1267,7 @@ fun PollingRateDiagnosticView(
         pollingHz >= 200f || peakHz >= 220f -> stringResource(R.string.conn_quality_bt_fast)
         pollingHz >= 90f || peakHz >= 100f -> stringResource(R.string.conn_quality_bt_std)
         pollingHz > 0f -> stringResource(R.string.conn_quality_slow)
-        else -> "🕹️ Bougez les joysticks ou appuyez sur des touches..."
+        else -> stringResource(R.string.polling_idle_hint)
     }
 
     val connQualityColor = when {
@@ -1361,7 +1361,7 @@ fun PollingRateDiagnosticView(
                         fontWeight = FontWeight.Black
                     )
                     Text(
-                        "${(pollingHz / 1000f * 100f).coerceIn(0f, 100f).toInt()}% de 1000Hz",
+                        stringResource(R.string.polling_percent_of_1000, (pollingHz / 1000f * 100f).coerceIn(0f, 100f).toInt()),
                         color = TextSecondary.copy(alpha = 0.7f),
                         fontSize = 10.sp
                     )
@@ -1387,7 +1387,7 @@ fun PollingRateDiagnosticView(
                         fontWeight = FontWeight.Black
                     )
                     Text(
-                        "Max enregistré",
+                        stringResource(R.string.polling_peak_caption),
                         color = TextSecondary.copy(alpha = 0.7f),
                         fontSize = 10.sp
                     )
@@ -1419,7 +1419,7 @@ fun PollingRateDiagnosticView(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Intervalle moyen",
+                        stringResource(R.string.polling_latency_caption),
                         color = TextSecondary.copy(alpha = 0.7f),
                         fontSize = 10.sp
                     )
@@ -1446,7 +1446,7 @@ fun PollingRateDiagnosticView(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Écart-type deltas",
+                        stringResource(R.string.polling_jitter_caption),
                         color = TextSecondary.copy(alpha = 0.7f),
                         fontSize = 10.sp
                     )
@@ -1470,8 +1470,8 @@ fun PollingRateDiagnosticView(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("📊 Flux de Fréquence en Direct", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("Paquets : $sampleCount", color = TextSecondary, fontSize = 11.sp)
+                    Text(stringResource(R.string.polling_live_graph_title), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(stringResource(R.string.polling_packets, sampleCount), color = TextSecondary, fontSize = 11.sp)
                 }
 
                 Surface(
@@ -1657,7 +1657,8 @@ fun GamepadRumbleDiagnosticView(
                                 )
                                 Text(
                                     text = if (info.hasRumble) {
-                                        stringResource(R.string.gamepad_rumble_detected, info.motorCount) + if (info.hasAmplitudeControl) " • Contrôle PWM supporté" else ""
+                                        val detected = stringResource(R.string.gamepad_rumble_detected, info.motorCount)
+                                        if (info.hasAmplitudeControl) stringResource(R.string.gamepad_rumble_pwm_supported, detected) else detected
                                     } else {
                                         stringResource(R.string.gamepad_rumble_not_supported)
                                     },
@@ -1699,7 +1700,7 @@ fun GamepadRumbleDiagnosticView(
 
             // Test Controls
             Text(
-                text = "Motifs de vibration tactiles",
+                text = stringResource(R.string.rumble_test_patterns_title),
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
                 fontSize = 13.sp
@@ -1713,7 +1714,7 @@ fun GamepadRumbleDiagnosticView(
                 ) {
                     Button(
                         onClick = {
-                            lastTriggeredEffect = "Tir Simple"
+                            lastTriggeredEffect = "Single Fire"
                             hapticManager.playFireHaptic(intensity)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = NeonCyan),
@@ -1731,7 +1732,7 @@ fun GamepadRumbleDiagnosticView(
 
                     Button(
                         onClick = {
-                            lastTriggeredEffect = "Rechargement"
+                            lastTriggeredEffect = "Reload"
                             hapticManager.playReloadHaptic(intensity)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = NeonPink),
@@ -1756,7 +1757,7 @@ fun GamepadRumbleDiagnosticView(
                     Button(
                         onClick = {
                             isContinuousRumbling = !isContinuousRumbling
-                            lastTriggeredEffect = if (isContinuousRumbling) "Rafale Continue" else null
+                            lastTriggeredEffect = if (isContinuousRumbling) "Continuous Burst" else null
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (isContinuousRumbling) NeonGreen else DarkSurface
@@ -1769,7 +1770,7 @@ fun GamepadRumbleDiagnosticView(
                         modifier = Modifier.weight(1f).height(44.dp)
                     ) {
                         Text(
-                            if (isContinuousRumbling) "⏹ Arrêter Rafale" else stringResource(R.string.rumble_test_burst_btn),
+                            stringResource(if (isContinuousRumbling) R.string.rumble_test_stop_burst_btn else R.string.rumble_test_burst_btn),
                             color = if (isContinuousRumbling) DarkBackground else NeonGreen,
                             fontWeight = FontWeight.Bold,
                             fontSize = 11.5.sp,
@@ -1779,7 +1780,7 @@ fun GamepadRumbleDiagnosticView(
 
                     Button(
                         onClick = {
-                            lastTriggeredEffect = "Impulsion 500ms"
+                            lastTriggeredEffect = "Pulse 500ms"
                             hapticManager.playTestHaptic(500L, intensity)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = DarkSurface),

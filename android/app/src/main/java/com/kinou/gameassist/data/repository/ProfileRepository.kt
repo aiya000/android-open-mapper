@@ -2,6 +2,7 @@ package com.kinou.gameassist.data.repository
 
 import android.content.Context
 import androidx.core.util.AtomicFile
+import com.kinou.gameassist.R
 import com.kinou.gameassist.data.model.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -297,7 +298,7 @@ class ProfileRepository private constructor(context: Context) {
             // Ensure unique ID if imported
             if (getProfile(imported.id) != null) {
                 imported.id = "profile_${UUID.randomUUID().toString().take(8)}"
-                imported.name = "${imported.name} (Importé)"
+                imported.name = context.getString(R.string.profile_name_imported, imported.name)
             }
             saveProfile(imported)
             imported
@@ -341,7 +342,7 @@ class ProfileRepository private constructor(context: Context) {
         val newScreenshotPath = ScreenshotManager.duplicateScreenshot(context, newId, profile.customScreenshotPath)
         val copy = profile.deepCopy().copy(
             id = newId,
-            name = "${profile.name} (Copie)",
+            name = context.getString(R.string.profile_name_copy, profile.name),
             customScreenshotPath = newScreenshotPath,
             buttons = profile.buttons.map { it.copy(id = "btn_${UUID.randomUUID().toString().take(8)}") }.toMutableList()
         )

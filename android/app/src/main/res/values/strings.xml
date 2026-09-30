@@ -329,4 +329,66 @@
     <string name="community_import_error">Error decoding profile</string>
     <string name="community_download_error">Download error: %1$s</string>
     <string name="community_vote_error">Vote error: %1$s</string>
+
+    <!-- Home screen and app update -->
+    <string name="home_launch_not_installed">%1$s is not installed</string>
+    <string name="home_launch_failed">Could not launch the app</string>
+    <string name="update_install_failed">Install failed: %1$s</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="update_error_invalid_url">Invalid APK download URL, or the release has no APK</string>
+    <string name="update_error_path_traversal">Directory traversal attempt detected: %1$s</string>
+    <string name="update_error_insecure_url">Rejected insecure URL: %1$s</string>
+    <string name="update_error_untrusted_host">Download host not allowed: %1$s</string>
+    <string name="update_error_redirect_no_location">Redirect without a Location header</string>
+    <string name="update_error_insecure_redirect">Blocked insecure redirect: %1$s</string>
+    <string name="update_error_http">HTTP network error %1$d</string>
+    <string name="update_error_no_stream">Download stream unavailable</string>
+    <string name="update_error_checksum">Integrity check of the downloaded APK failed</string>
+    <string name="update_error_apk_missing">APK file missing or incomplete</string>
+    <string name="update_error_apk_corrupt">The downloaded APK file is corrupted or incomplete</string>
+    <string name="update_error_package_mismatch">The APK\'s package (%1$s) does not match this app (%2$s).</string>
+    <string name="update_error_signature_mismatch">Cryptographic check failed: the update APK\'s signing certificate does not match the installed app.</string>
+
+    <!-- Gamepad test screen -->
+    <string name="test_back_paddles_title">BACK PADDLES (ELITE / SCUF / M1-M4)</string>
+    <string name="polling_idle_hint">🕹️ Move the sticks or press buttons…</string>
+    <string name="polling_percent_of_1000">%1$d%% of 1000Hz</string>
+    <string name="polling_peak_caption">Highest recorded</string>
+    <string name="polling_latency_caption">Average interval</string>
+    <string name="polling_jitter_caption">Std. deviation of intervals</string>
+    <string name="polling_live_graph_title">📊 Live Frequency Stream</string>
+    <string name="polling_packets">Packets: %1$d</string>
+    <string name="gamepad_rumble_pwm_supported">%1$s • PWM control supported</string>
+    <string name="rumble_test_patterns_title">Tactile vibration patterns</string>
+    <string name="rumble_test_stop_burst_btn">⏹ Stop Burst</string>
+
+    <!-- Community screen and community server errors -->
+    <string name="community_unreachable">Could not reach the community</string>
+    <string name="community_publish_success">Profile published to the Community Hub!</string>
+    <string name="community_publish_error">Error: %1$s</string>
+    <string name="community_import_btn">Import</string>
+    <string name="community_by_author">By %1$s</string>
+    <string name="community_publish_title">Share a Profile</string>
+    <string name="community_publish_select">Select the local profile to publish:</string>
+    <string name="community_publish_field_title">Profile title (e.g. CODM Pro Flick 180°)</string>
+    <string name="community_publish_field_author">Your nickname / author</string>
+    <string name="community_publish_field_desc">Description / gameplay tips (optional)</string>
+    <string name="community_publish_field_controller">Recommended controller type</string>
+    <string name="community_publish_controller_default">Xbox / PS5 / Generic</string>
+    <string name="community_publish_btn">Publish</string>
+    <string name="community_publish_cancel">Cancel</string>
+    <string name="community_error_no_token">The server response has no token</string>
+    <string name="community_error_invalid_response">Invalid server response</string>
+    <string name="community_error_profile_not_found">Profile not found</string>
+    <string name="community_error_vote_rejected">Vote rejected</string>
+    <string name="community_error_publish_rejected">Publication rejected</string>
+    <string name="community_error_server">Server error (%1$d)</string>
+    <string name="community_error_ssl">Cloudflare SSL certificate is still being set up…\nThis takes a few minutes on first setup. Try again in a moment!</string>
+    <string name="community_error_unreachable">Could not reach the server. Check your Internet connection.</string>
+    <string name="community_error_network_unknown">Unknown network error</string>
+
+    <!-- Profile names and the visual editor -->
+    <string name="profile_name_imported">%1$s (Imported)</string>
+    <string name="profile_name_copy">%1$s (Copy)</string>
+    <string name="profile_saved_toast">Profile saved!</string>
 </resources>

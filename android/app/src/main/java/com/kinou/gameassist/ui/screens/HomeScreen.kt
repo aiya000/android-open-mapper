@@ -407,10 +407,10 @@ fun HomeScreen(
                         if (launchIntent != null) {
                             context.startActivity(launchIntent)
                         } else {
-                            Toast.makeText(context, "${selectedProfile.packageName} not installed", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.home_launch_not_installed, selectedProfile.packageName), Toast.LENGTH_SHORT).show()
                         }
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Cannot launch app", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.home_launch_failed), Toast.LENGTH_SHORT).show()
                     }
                 },
                 shape = RoundedCornerShape(12.dp),
@@ -612,7 +612,7 @@ fun HomeScreen(
                                 coroutineScope.launch {
                                     val res = AppUpdateManager.installApk(context, downloadedApkFile!!)
                                     if (res.isFailure) {
-                                        Toast.makeText(context, "Erreur install: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, context.getString(R.string.update_install_failed, res.exceptionOrNull()?.message ?: context.getString(R.string.error_unknown)), Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             },
@@ -651,7 +651,7 @@ fun HomeScreen(
                                         AppUpdateManager.installApk(context, apkFile)
                                     }
                                 }.onFailure { err ->
-                                    downloadError = err.localizedMessage ?: err.message ?: "Erreur"
+                                    downloadError = err.localizedMessage ?: err.message ?: context.getString(R.string.error_unknown)
                                 }
                             }
                         },
