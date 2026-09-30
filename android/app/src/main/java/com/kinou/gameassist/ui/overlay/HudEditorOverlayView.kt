@@ -457,7 +457,7 @@ class HudEditorOverlayView(
                 canvas.drawRect(cx1, cy1, cx2, cy2, camStroke)
             }
 
-            val camTitle = if (isCameraSelected) "🎥 CAMÉRA (SÉLECTIONNÉE - GLISSER / COINS)" else context.getString(R.string.overlay_camera_zone)
+            val camTitle = if (isCameraSelected) context.getString(R.string.overlay_camera_selected) else context.getString(R.string.overlay_camera_zone)
             canvas.drawText(camTitle, (cx1 + cx2) / 2f, cy1 + 35f, textPaint)
 
             // Live Right Stick Feedback (Aiming reticle inside camera zone)
@@ -545,16 +545,17 @@ class HudEditorOverlayView(
             // Role badge (if not normal)
             if (b.role != ButtonRole.NORMAL) {
                 val (roleTextStr, roleBgColor) = when (b.role) {
-                    ButtonRole.FIRE -> "🔥 TIR" to 0xEEFF0055.toInt()
-                    ButtonRole.RELOAD -> "🔄 RECH" to 0xEEFFAA00.toInt()
+                    ButtonRole.FIRE -> context.getString(R.string.overlay_badge_fire) to 0xEEFF0055.toInt()
+                    ButtonRole.RELOAD -> context.getString(R.string.overlay_badge_reload) to 0xEEFFAA00.toInt()
                     ButtonRole.ADS -> "🎯 ADS" to 0xEE00FF66.toInt()
-                    ButtonRole.TOGGLE_RECOIL -> "🎯 RECUL" to 0xEE00F0FF.toInt()
+                    ButtonRole.TOGGLE_RECOIL -> context.getString(R.string.overlay_badge_recoil) to 0xEE00F0FF.toInt()
                     ButtonRole.TOGGLE_STRAFE -> "⚡ STRAFE" to 0xEE00FF66.toInt()
-                    ButtonRole.SWITCH_PROFILE -> "🎮 PROFIL" to 0xEE9C27B0.toInt()
+                    ButtonRole.SWITCH_PROFILE -> context.getString(R.string.overlay_badge_profile) to 0xEE9C27B0.toInt()
                     ButtonRole.NORMAL -> "" to 0
                 }
                 roleBadgeBgPaint.color = roleBgColor
-                val badgeW = if (b.role == ButtonRole.SWITCH_PROFILE || b.role == ButtonRole.TOGGLE_RECOIL || b.role == ButtonRole.TOGGLE_STRAFE) 42f * density else 34f * density
+                // Half width, fitted to the text since translated labels differ in length
+                val badgeW = max(34f * density, roleBadgeTextPaint.measureText(roleTextStr) / 2f + 6f * density)
                 val badgeH = 16f * density
                 val topY = by - br - badgeH - 2f
                 canvas.drawRoundRect(bx - badgeW, topY, bx + badgeW, topY + badgeH, 6f, 6f, roleBadgeBgPaint)
@@ -692,7 +693,7 @@ class HudEditorOverlayView(
 
         // 4. Button: ⚡ Strafe Quick Toggle
         val strafeActive = profile.joystick.jiggleStrafe
-        val strafeLabel = if (strafeActive) "⚡ Strafe: ON" else "⚡ Strafe: OFF"
+        val strafeLabel = context.getString(if (strafeActive) R.string.overlay_strafe_on else R.string.overlay_strafe_off)
         uiBtnTextPaint.color = if (strafeActive) Color.BLACK else Color.WHITE
         uiBtnTextPaint.textSize = 13.5f * density
         val strafeW = max(94f * density, uiBtnTextPaint.measureText(strafeLabel) + 20f * density)
@@ -706,7 +707,7 @@ class HudEditorOverlayView(
 
         // 4b. Button: 🎯 Recul Quick Toggle
         val recoilActive = profile.camera.antiRecoilEnabled
-        val recoilLabel = if (recoilActive) "🎯 Recul: ON" else "🎯 Recul: OFF"
+        val recoilLabel = context.getString(if (recoilActive) R.string.overlay_recoil_on else R.string.overlay_recoil_off)
         uiBtnTextPaint.color = if (recoilActive) Color.BLACK else Color.WHITE
         uiBtnTextPaint.textSize = 13.5f * density
         val recoilW = max(94f * density, uiBtnTextPaint.measureText(recoilLabel) + 20f * density)
@@ -838,13 +839,14 @@ class HudEditorOverlayView(
 
         // 1. Delete (a virtual button, or the menu button to go back to the edge handle)
         if (selectedButton != null || isMenuSelected) {
-            val delW = 84f * density
+            val delLabel = context.getString(R.string.overlay_btn_delete)
+            uiBtnTextPaint.color = Color.WHITE
+            uiBtnTextPaint.textSize = 13.5f * density
+            val delW = max(84f * density, uiBtnTextPaint.measureText(delLabel) + 20f * density)
             btnDelRect.set(rightX - delW, btnTop, rightX, btnBottom)
             uiBtnBgPaint.color = 0xFFFF0055.toInt()
             canvas.drawRoundRect(btnDelRect, btnRadius, btnRadius, uiBtnBgPaint)
-            uiBtnTextPaint.color = Color.WHITE
-            uiBtnTextPaint.textSize = 13.5f * density
-            canvas.drawText("🗑️ Suppr", btnDelRect.centerX(), btnDelRect.centerY() + 5f * density, uiBtnTextPaint)
+            canvas.drawText(delLabel, btnDelRect.centerX(), btnDelRect.centerY() + 5f * density, uiBtnTextPaint)
             rightX -= (delW + btnSpacing)
         } else {
             btnDelRect.setEmpty()
@@ -891,12 +893,12 @@ class HudEditorOverlayView(
 
             // Role Toggle
             val roleLabel = when (btn.role) {
-                ButtonRole.FIRE -> "🔥 Tir"
-                ButtonRole.RELOAD -> "🔄 Rech."
+                ButtonRole.FIRE -> context.getString(R.string.overlay_role_fire)
+                ButtonRole.RELOAD -> context.getString(R.string.overlay_role_reload)
                 ButtonRole.ADS -> "🎯 ADS"
-                ButtonRole.TOGGLE_RECOIL -> "🎯 Recul"
+                ButtonRole.TOGGLE_RECOIL -> context.getString(R.string.overlay_role_recoil)
                 ButtonRole.TOGGLE_STRAFE -> "⚡ Strafe"
-                ButtonRole.SWITCH_PROFILE -> "🎮 Profil"
+                ButtonRole.SWITCH_PROFILE -> context.getString(R.string.overlay_role_profile)
                 ButtonRole.NORMAL -> "Normal"
             }
             uiBtnBgPaint.color = when (btn.role) {
@@ -908,12 +910,13 @@ class HudEditorOverlayView(
                 ButtonRole.SWITCH_PROFILE -> 0xFF9C27B0.toInt()
                 ButtonRole.NORMAL -> 0xFF243040.toInt()
             }
-            val roleW = 96f * density
-            btnRoleRect.set(rightX - roleW, btnTop, rightX, btnBottom)
-            canvas.drawRoundRect(btnRoleRect, btnRadius, btnRadius, uiBtnBgPaint)
+            val roleText = context.getString(R.string.overlay_role_label, roleLabel)
             uiBtnTextPaint.color = if (btn.role == ButtonRole.NORMAL) 0xFF00F0FF.toInt() else if (btn.role == ButtonRole.SWITCH_PROFILE) Color.WHITE else Color.BLACK
             uiBtnTextPaint.textSize = 12f * density
-            canvas.drawText("Rôle: $roleLabel", btnRoleRect.centerX(), btnRoleRect.centerY() + 5f * density, uiBtnTextPaint)
+            val roleW = max(96f * density, uiBtnTextPaint.measureText(roleText) + 16f * density)
+            btnRoleRect.set(rightX - roleW, btnTop, rightX, btnBottom)
+            canvas.drawRoundRect(btnRoleRect, btnRadius, btnRadius, uiBtnBgPaint)
+            canvas.drawText(roleText, btnRoleRect.centerX(), btnRoleRect.centerY() + 5f * density, uiBtnTextPaint)
             rightX -= (roleW + btnSpacing)
 
             // Mode Toggle
@@ -927,22 +930,24 @@ class HudEditorOverlayView(
                 ButtonMode.TAP -> 0xFFFFAA00.toInt()
                 ButtonMode.RAPID_FIRE -> 0xFFFF0055.toInt()
             }
-            val modeW = 92f * density
-            btnModeRect.set(rightX - modeW, btnTop, rightX, btnBottom)
-            canvas.drawRoundRect(btnModeRect, btnRadius, btnRadius, uiBtnBgPaint)
+            val modeText = context.getString(R.string.overlay_mode_label, modeLabel)
             uiBtnTextPaint.color = if (btn.mode == ButtonMode.RAPID_FIRE) Color.WHITE else Color.BLACK
             uiBtnTextPaint.textSize = 12.5f * density
-            canvas.drawText("Mode: $modeLabel", btnModeRect.centerX(), btnModeRect.centerY() + 5f * density, uiBtnTextPaint)
+            val modeW = max(92f * density, uiBtnTextPaint.measureText(modeText) + 16f * density)
+            btnModeRect.set(rightX - modeW, btnTop, rightX, btnBottom)
+            canvas.drawRoundRect(btnModeRect, btnRadius, btnRadius, uiBtnBgPaint)
+            canvas.drawText(modeText, btnModeRect.centerX(), btnModeRect.centerY() + 5f * density, uiBtnTextPaint)
             rightX -= (modeW + btnSpacing)
 
             // Assign Button (🎮 Assigner)
             uiBtnBgPaint.color = if (isLearning) 0xEEFF0055.toInt() else 0xFF00F0FF.toInt()
-            val assignW = 96f * density
-            btnAssignRect.set(rightX - assignW, btnTop, rightX, btnBottom)
-            canvas.drawRoundRect(btnAssignRect, btnRadius, btnRadius, uiBtnBgPaint)
+            val assignText = context.getString(if (isLearning) R.string.overlay_btn_assign_waiting else R.string.overlay_btn_assign)
             uiBtnTextPaint.color = if (isLearning) Color.WHITE else Color.BLACK
             uiBtnTextPaint.textSize = 13.5f * density
-            canvas.drawText(if (isLearning) "⏳ Touche..." else "🎮 Assigner", btnAssignRect.centerX(), btnAssignRect.centerY() + 5f * density, uiBtnTextPaint)
+            val assignW = max(96f * density, uiBtnTextPaint.measureText(assignText) + 16f * density)
+            btnAssignRect.set(rightX - assignW, btnTop, rightX, btnBottom)
+            canvas.drawRoundRect(btnAssignRect, btnRadius, btnRadius, uiBtnBgPaint)
+            canvas.drawText(assignText, btnAssignRect.centerX(), btnAssignRect.centerY() + 5f * density, uiBtnTextPaint)
             rightX -= (assignW + btnSpacing)
             btnJoyStrafeRect.setEmpty()
         } else if (isJoystickSelected) {
@@ -954,7 +959,7 @@ class HudEditorOverlayView(
             btnCamRecoilDecRect.setEmpty()
 
             val strafeActive = profile.joystick.jiggleStrafe
-            val strafeLabel = if (strafeActive) "⚡ Strafe: ON" else "⚡ Strafe: OFF"
+            val strafeLabel = context.getString(if (strafeActive) R.string.overlay_strafe_on else R.string.overlay_strafe_off)
             uiBtnBgPaint.color = if (strafeActive) 0xFF00FF66.toInt() else 0xFF243040.toInt()
             uiBtnStrokePaint.color = if (strafeActive) 0xFF00FF66.toInt() else 0xFF00F0FF.toInt()
             uiBtnTextPaint.color = if (strafeActive) Color.BLACK else Color.WHITE
@@ -972,7 +977,7 @@ class HudEditorOverlayView(
             btnJoyStrafeRect.setEmpty()
 
             val recoilActive = profile.camera.antiRecoilEnabled
-            val recoilLabel = if (recoilActive) "🎯 Recul: ON" else "🎯 Recul: OFF"
+            val recoilLabel = context.getString(if (recoilActive) R.string.overlay_recoil_on else R.string.overlay_recoil_off)
             uiBtnBgPaint.color = if (recoilActive) 0xFFFF9900.toInt() else 0xFF243040.toInt()
             uiBtnStrokePaint.color = if (recoilActive) 0xFFFF9900.toInt() else 0xFF00F0FF.toInt()
             uiBtnTextPaint.color = if (recoilActive) Color.BLACK else Color.WHITE
@@ -1030,8 +1035,8 @@ class HudEditorOverlayView(
         if (rightX > titleLeft + 40f * density) {
             val title = when (val item = selectedItem) {
                 is ButtonConfig -> "🎯 ${item.label} [${item.gamepadButton.replace("BUTTON_", "")}]"
-                "JOYSTICK" -> "🕹️ Joystick LS"
-                "CAMERA" -> "🎥 Zone Caméra RS"
+                "JOYSTICK" -> context.getString(R.string.overlay_item_joystick)
+                "CAMERA" -> context.getString(R.string.overlay_item_camera)
                 "MENU" -> context.getString(R.string.overlay_menu_title)
                 else -> ""
             }
@@ -1494,7 +1499,7 @@ class HudEditorOverlayView(
         if (btnAddRect.contains(tx, ty)) {
             val newBtn = ButtonConfig(
                 id = "btn_${UUID.randomUUID().toString().take(6)}",
-                label = "Action ${profile.buttons.size + 1}",
+                label = context.getString(R.string.overlay_new_button_label, profile.buttons.size + 1),
                 gamepadButton = "BUTTON_A",
                 x = 0.5f,
                 y = 0.5f,

@@ -235,6 +235,38 @@
     <string name="overlay_menu_button">☰ MENU</string>
     <string name="overlay_menu_title">☰ Menu overlay</string>
 
+    <!-- Overlay: HUD editor, in-game menu and toasts -->
+    <string name="overlay_camera_selected">🎥 CAMÉRA (SÉLECTIONNÉE - GLISSER / COINS)</string>
+    <string name="overlay_item_joystick">🕹️ Joystick LS</string>
+    <string name="overlay_item_camera">🎥 Zone Caméra RS</string>
+    <string name="overlay_new_button_label">Action %1$d</string>
+    <string name="overlay_badge_fire">🔥 TIR</string>
+    <string name="overlay_badge_reload">🔄 RECH</string>
+    <string name="overlay_badge_recoil">🎯 RECUL</string>
+    <string name="overlay_badge_profile">🎮 PROFIL</string>
+    <string name="overlay_role_fire">🔥 Tir</string>
+    <string name="overlay_role_reload">🔄 Rech.</string>
+    <string name="overlay_role_recoil">🎯 Recul</string>
+    <string name="overlay_role_profile">🎮 Profil</string>
+    <string name="overlay_role_label">Rôle : %1$s</string>
+    <string name="overlay_mode_label">Mode : %1$s</string>
+    <string name="overlay_btn_assign_waiting">⏳ Touche…</string>
+    <string name="overlay_strafe_on">⚡ Strafe : ON</string>
+    <string name="overlay_strafe_off">⚡ Strafe : OFF</string>
+    <string name="overlay_recoil_on">🎯 Recul : ON</string>
+    <string name="overlay_recoil_off">🎯 Recul : OFF</string>
+    <string name="overlay_menu_strafe_on">Strafe : ACTIF</string>
+    <string name="overlay_menu_strafe_off">Strafe : OFF</string>
+    <string name="overlay_menu_recoil_on">Recul : ACTIF</string>
+    <string name="overlay_menu_recoil_off">Recul : OFF</string>
+    <string name="overlay_menu_recoil_speed">Vitesse : %1$s</string>
+    <string name="toast_shizuku_lost">⚠️ Connexion Shizuku perdue. Vérifiez l\'application Shizuku.</string>
+    <string name="toast_strafe_on">⚡ Auto Jiggle Strafe ACTIVÉ</string>
+    <string name="toast_strafe_off">Auto Jiggle Strafe DÉSACTIVÉ</string>
+    <string name="toast_recoil_on">🎯 Anti-Recul (%1$s) ACTIVÉ</string>
+    <string name="toast_recoil_off">Anti-Recul DÉSACTIVÉ</string>
+    <string name="toast_active_profile">🎮 Profil actif : %1$s</string>
+
     <!-- Legacy / Compat -->
     <string name="shizuku_connected">Service Shizuku Connecté</string>
     <string name="shizuku_disconnected">Shizuku Non Détecté</string>

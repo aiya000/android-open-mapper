@@ -8,6 +8,7 @@ import android.os.Looper
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import com.kinou.gameassist.R
 import com.kinou.gameassist.data.model.GamepadDetector
 import com.kinou.gameassist.data.model.GameProfile
 import com.kinou.gameassist.injector.ShizukuTouchInjector
@@ -144,7 +145,13 @@ class GamepadEngine(
             if (cam != null) {
                 cam.antiRecoilEnabled = !cam.antiRecoilEnabled
                 cameraProcessor.config = cam.copy()
-                onTacticalToggle?.invoke("🎯 Anti-Recul: " + if (cam.antiRecoilEnabled) "ACTIF (${cam.antiRecoilSpeed}x)" else "DÉSACTIVÉ")
+                onTacticalToggle?.invoke(
+                    if (cam.antiRecoilEnabled) {
+                        context.getString(R.string.toast_recoil_on, String.format(java.util.Locale.US, "%.1fx", cam.antiRecoilSpeed))
+                    } else {
+                        context.getString(R.string.toast_recoil_off)
+                    }
+                )
             }
         }
         buttonProcessor.onToggleStrafe = {
@@ -152,7 +159,9 @@ class GamepadEngine(
             if (joy != null) {
                 joy.jiggleStrafe = !joy.jiggleStrafe
                 movementProcessor.config = joy.copy()
-                onTacticalToggle?.invoke("⚡ Jiggle Strafe: " + if (joy.jiggleStrafe) "ACTIF" else "DÉSACTIVÉ")
+                onTacticalToggle?.invoke(
+                    context.getString(if (joy.jiggleStrafe) R.string.toast_strafe_on else R.string.toast_strafe_off)
+                )
             }
         }
         buttonProcessor.onSwitchProfile = {

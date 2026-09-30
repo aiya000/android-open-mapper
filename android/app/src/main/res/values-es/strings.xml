@@ -224,6 +224,38 @@
     <string name="overlay_menu_button">☰ MENÚ</string>
     <string name="overlay_menu_title">☰ Menú overlay</string>
 
+    <!-- Overlay: HUD editor, in-game menu and toasts -->
+    <string name="overlay_camera_selected">🎥 CÁMARA (SELECCIONADA - ARRASTRAR / ESQUINAS)</string>
+    <string name="overlay_item_joystick">🕹️ Joystick LS</string>
+    <string name="overlay_item_camera">🎥 Zona de cámara RS</string>
+    <string name="overlay_new_button_label">Acción %1$d</string>
+    <string name="overlay_badge_fire">🔥 DISPARO</string>
+    <string name="overlay_badge_reload">🔄 RECARGA</string>
+    <string name="overlay_badge_recoil">🎯 RETROCESO</string>
+    <string name="overlay_badge_profile">🎮 PERFIL</string>
+    <string name="overlay_role_fire">🔥 Disparo</string>
+    <string name="overlay_role_reload">🔄 Recarga</string>
+    <string name="overlay_role_recoil">🎯 Retroceso</string>
+    <string name="overlay_role_profile">🎮 Perfil</string>
+    <string name="overlay_role_label">Rol: %1$s</string>
+    <string name="overlay_mode_label">Modo: %1$s</string>
+    <string name="overlay_btn_assign_waiting">⏳ Pulsa…</string>
+    <string name="overlay_strafe_on">⚡ Strafe: ON</string>
+    <string name="overlay_strafe_off">⚡ Strafe: OFF</string>
+    <string name="overlay_recoil_on">🎯 Retroceso: ON</string>
+    <string name="overlay_recoil_off">🎯 Retroceso: OFF</string>
+    <string name="overlay_menu_strafe_on">Strafe: ACTIVO</string>
+    <string name="overlay_menu_strafe_off">Strafe: OFF</string>
+    <string name="overlay_menu_recoil_on">Retroceso: ACTIVO</string>
+    <string name="overlay_menu_recoil_off">Retroceso: OFF</string>
+    <string name="overlay_menu_recoil_speed">Velocidad: %1$s</string>
+    <string name="toast_shizuku_lost">⚠️ Conexión con Shizuku perdida. Revisa la app Shizuku.</string>
+    <string name="toast_strafe_on">⚡ Auto Jiggle Strafe ACTIVADO</string>
+    <string name="toast_strafe_off">Auto Jiggle Strafe DESACTIVADO</string>
+    <string name="toast_recoil_on">🎯 Anti-retroceso (%1$s) ACTIVADO</string>
+    <string name="toast_recoil_off">Anti-retroceso DESACTIVADO</string>
+    <string name="toast_active_profile">🎮 Perfil activo: %1$s</string>
+
     <!-- Legacy / Compat -->
     <string name="shizuku_connected">Servicio Shizuku Conectado</string>
     <string name="shizuku_disconnected">Shizuku No Detectado</string>

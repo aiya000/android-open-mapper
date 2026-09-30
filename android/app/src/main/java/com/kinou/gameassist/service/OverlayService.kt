@@ -129,7 +129,7 @@ class OverlayService : LifecycleService() {
                     android.os.Handler(android.os.Looper.getMainLooper()).post {
                         android.widget.Toast.makeText(
                             applicationContext,
-                            "⚠️ Connexion Shizuku perdue. Vérifiez l'application Shizuku.",
+                            getString(R.string.toast_shizuku_lost),
                             android.widget.Toast.LENGTH_LONG
                         ).show()
                     }
@@ -325,7 +325,7 @@ class OverlayService : LifecycleService() {
                     lifecycleScope.launch(Dispatchers.IO) {
                         repository.saveProfileAsync(prof)
                     }
-                    val stateMsg = if (prof.joystick.jiggleStrafe) "⚡ Auto Jiggle Strafe ACTIVÉ" else "Auto Jiggle Strafe DÉSACTIVÉ"
+                    val stateMsg = getString(if (prof.joystick.jiggleStrafe) R.string.toast_strafe_on else R.string.toast_strafe_off)
                     android.widget.Toast.makeText(this, stateMsg, android.widget.Toast.LENGTH_SHORT).show()
                 }
             },
@@ -340,9 +340,9 @@ class OverlayService : LifecycleService() {
                         repository.saveProfileAsync(prof)
                     }
                     val stateMsg = if (prof.camera.antiRecoilEnabled) {
-                        "🎯 Anti-Recul (${String.format(java.util.Locale.US, "%.1fx", prof.camera.antiRecoilSpeed)}) ACTIVÉ"
+                        getString(R.string.toast_recoil_on, String.format(java.util.Locale.US, "%.1fx", prof.camera.antiRecoilSpeed))
                     } else {
-                        "Anti-Recul DÉSACTIVÉ"
+                        getString(R.string.toast_recoil_off)
                     }
                     android.widget.Toast.makeText(this, stateMsg, android.widget.Toast.LENGTH_SHORT).show()
                 }
@@ -574,7 +574,7 @@ class OverlayService : LifecycleService() {
 
     private fun showHotSwitchToast(profileName: String) {
         android.os.Handler(android.os.Looper.getMainLooper()).post {
-            android.widget.Toast.makeText(applicationContext, "🎮 Profil actif : $profileName", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(applicationContext, getString(R.string.toast_active_profile, profileName), android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 

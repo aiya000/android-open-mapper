@@ -235,6 +235,38 @@
     <string name="overlay_menu_button">☰ MENU</string>
     <string name="overlay_menu_title">☰ Overlay menu</string>
 
+    <!-- Overlay: HUD editor, in-game menu and toasts -->
+    <string name="overlay_camera_selected">🎥 CAMERA (SELECTED - DRAG / CORNERS)</string>
+    <string name="overlay_item_joystick">🕹️ Joystick LS</string>
+    <string name="overlay_item_camera">🎥 Camera Zone RS</string>
+    <string name="overlay_new_button_label">Action %1$d</string>
+    <string name="overlay_badge_fire">🔥 FIRE</string>
+    <string name="overlay_badge_reload">🔄 RELOAD</string>
+    <string name="overlay_badge_recoil">🎯 RECOIL</string>
+    <string name="overlay_badge_profile">🎮 PROFILE</string>
+    <string name="overlay_role_fire">🔥 Fire</string>
+    <string name="overlay_role_reload">🔄 Reload</string>
+    <string name="overlay_role_recoil">🎯 Recoil</string>
+    <string name="overlay_role_profile">🎮 Profile</string>
+    <string name="overlay_role_label">Role: %1$s</string>
+    <string name="overlay_mode_label">Mode: %1$s</string>
+    <string name="overlay_btn_assign_waiting">⏳ Press…</string>
+    <string name="overlay_strafe_on">⚡ Strafe: ON</string>
+    <string name="overlay_strafe_off">⚡ Strafe: OFF</string>
+    <string name="overlay_recoil_on">🎯 Recoil: ON</string>
+    <string name="overlay_recoil_off">🎯 Recoil: OFF</string>
+    <string name="overlay_menu_strafe_on">Strafe: ON</string>
+    <string name="overlay_menu_strafe_off">Strafe: OFF</string>
+    <string name="overlay_menu_recoil_on">Recoil: ON</string>
+    <string name="overlay_menu_recoil_off">Recoil: OFF</string>
+    <string name="overlay_menu_recoil_speed">Speed: %1$s</string>
+    <string name="toast_shizuku_lost">⚠️ Shizuku connection lost. Check the Shizuku app.</string>
+    <string name="toast_strafe_on">⚡ Auto Jiggle Strafe ON</string>
+    <string name="toast_strafe_off">Auto Jiggle Strafe OFF</string>
+    <string name="toast_recoil_on">🎯 Anti-Recoil (%1$s) ON</string>
+    <string name="toast_recoil_off">Anti-Recoil OFF</string>
+    <string name="toast_active_profile">🎮 Active profile: %1$s</string>
+
     <!-- Legacy / Compat -->
     <string name="shizuku_connected">Shizuku Service Connected</string>
     <string name="shizuku_disconnected">Shizuku Not Detected</string>

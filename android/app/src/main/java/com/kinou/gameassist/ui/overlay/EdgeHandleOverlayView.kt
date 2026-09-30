@@ -470,7 +470,7 @@ class EdgeHandleOverlayView(
         val btn2Top = 78 * density
         val btn2Bottom = btn2Top + btnHeight
         val strafeOn = isStrafeActive?.invoke() ?: false
-        val strafeLabel = if (strafeOn) "Strafe: ACTIF" else "Strafe: OFF"
+        val strafeLabel = context.getString(if (strafeOn) com.kinou.gameassist.R.string.overlay_menu_strafe_on else com.kinou.gameassist.R.string.overlay_menu_strafe_off)
         val strafeColor = if (strafeOn) 0xFF00FF66.toInt() else 0xFF8899AA.toInt()
         drawMenuButton(
             canvas, RectF(btnLeft, btn2Top, btnRight, btn2Bottom),
@@ -484,7 +484,7 @@ class EdgeHandleOverlayView(
         val btn3Top = 120 * density
         val btn3Bottom = btn3Top + btnHeight
         val recoilOn = isAntiRecoilActive?.invoke() ?: false
-        val recoilLabel = if (recoilOn) "Recul: ACTIF" else "Recul: OFF"
+        val recoilLabel = context.getString(if (recoilOn) com.kinou.gameassist.R.string.overlay_menu_recoil_on else com.kinou.gameassist.R.string.overlay_menu_recoil_off)
         val recoilColor = if (recoilOn) 0xFFFF9900.toInt() else 0xFF8899AA.toInt()
         drawMenuButton(
             canvas, RectF(btnLeft, btn3Top, btnRight, btn3Bottom),
@@ -516,7 +516,10 @@ class EdgeHandleOverlayView(
             textPaint.textSize = 11.5f * density
             textPaint.color = 0xFFFF9900.toInt()
             textPaint.alpha = a
-            canvas.drawText("Vitesse : ${String.format(java.util.Locale.US, "%.1fx", curSpeed)}", btnLeft + 10 * density, curTop + 14 * density, textPaint)
+            canvas.drawText(
+                context.getString(com.kinou.gameassist.R.string.overlay_menu_recoil_speed, String.format(java.util.Locale.US, "%.1fx", curSpeed)),
+                btnLeft + 10 * density, curTop + 14 * density, textPaint
+            )
 
             // Minus button [ ➖ ]
             val stepBtnW = 24 * density
