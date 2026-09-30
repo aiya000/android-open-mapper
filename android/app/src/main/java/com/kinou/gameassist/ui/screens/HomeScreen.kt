@@ -135,7 +135,10 @@ fun HomeScreen(
                     color = NeonCyan
                 )
                 Text(
-                    text = stringResource(R.string.subtitle_native_mapper, currentVersion),
+                    text = stringResource(
+                        R.string.subtitle_native_mapper,
+                        if (com.kinou.gameassist.BuildConfig.DEBUG) "$currentVersion (debug)" else currentVersion
+                    ),
                     fontSize = 12.sp,
                     color = TextSecondary
                 )
