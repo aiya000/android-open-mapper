@@ -308,6 +308,27 @@ class HudEditorOverlayView(
     private val btnRemRect = RectF()
     private val btnShowRect = RectF()
 
+    // Top bar horizontal scroll, for screens too narrow to fit every button (e.g. a folded Z Fold).
+    // The buttons are right-aligned, so a positive offset shifts them right and reveals the leftmost ones.
+    private var topBarScrollX = 0f
+    private var topBarMaxScrollX = 0f
+    private var isTopBarTouch = false
+    private var isTopBarScrolling = false
+    private var topBarTouchStartX = 0f
+    private var topBarTouchStartY = 0f
+    private var topBarScrollStartX = 0f
+    private val touchSlop = android.view.ViewConfiguration.get(context).scaledTouchSlop
+    private val scrollableTopBarRects = arrayOf(
+        btnCloseRect, btnSaveRect, btnStrafeRect, btnRecoilRect, btnOpacRect,
+        btnDetailsRect, btnAddRect, btnShotRect, btnRemRect
+    )
+
+    /** Trims a scrolled top bar button to its visible part, so a hidden button cannot be tapped. */
+    private fun clipToScrollArea(rect: RectF, scrollLeft: Float) {
+        if (rect.isEmpty) return
+        if (rect.right <= scrollLeft) rect.setEmpty() else if (rect.left < scrollLeft) rect.left = scrollLeft
+    }
+
     // Draggable Floating "Outils" Button State
     private var showBtnNormX = -1f
     private var showBtnNormY = -1f
@@ -605,8 +626,12 @@ class HudEditorOverlayView(
         canvas.drawRoundRect(btnHideRect, btnRadius, btnRadius, uiBtnStrokePaint)
         canvas.drawText(hideLabel, btnHideRect.centerX(), btnHideRect.centerY() + 5f * density, uiBtnTextPaint)
 
-        // Right-aligned Buttons
-        var curRight = w - 16f * density
+        // Right-aligned Buttons, scrollable inside the area right of the Hide button
+        val scrollLeft = btnHideRect.right + btnSpacing
+        topBarScrollX = topBarScrollX.coerceIn(0f, topBarMaxScrollX)
+        var curRight = w - 16f * density + topBarScrollX
+        canvas.save()
+        canvas.clipRect(scrollLeft, 0f, w, barH)
 
         // 2. Button: ✖ Fermer
         val closeLabel = context.getString(R.string.overlay_btn_close)
@@ -725,6 +750,12 @@ class HudEditorOverlayView(
         } else {
             btnRemRect.setEmpty()
         }
+
+        canvas.restore()
+        // curRight is now left of the leftmost button by one btnSpacing
+        val contentLeftUnscrolled = curRight + btnSpacing - topBarScrollX
+        topBarMaxScrollX = max(0f, scrollLeft - contentLeftUnscrolled)
+        for (rect in scrollableTopBarRects) clipToScrollArea(rect, scrollLeft)
 
         if (isLearning && selectedButton != null) {
             val bannerH = 40f * density
@@ -1000,88 +1031,15 @@ class HudEditorOverlayView(
                         return true
                     }
 
-                    // ✖ Fermer
-                    if (btnCloseRect.contains(tx, ty)) {
-                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                        onClose()
-                        return true
-                    }
-
-                    // 💾 Sauvegarder
-                    if (btnSaveRect.contains(tx, ty)) {
-                        performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-                        onSave(profile)
-                        return true
-                    }
-
-                    // ⚡ Strafe Quick Toggle
-                    if (btnStrafeRect.contains(tx, ty)) {
-                        profile.joystick.jiggleStrafe = !profile.joystick.jiggleStrafe
-                        performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-                        invalidate()
-                        return true
-                    }
-
-                    // 🎯 Recul Quick Toggle
-                    if (btnRecoilRect.contains(tx, ty)) {
-                        profile.camera.antiRecoilEnabled = !profile.camera.antiRecoilEnabled
-                        performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-                        invalidate()
-                        return true
-                    }
-
-                    // 🎨 Opacité Toggle
-                    if (btnOpacRect.contains(tx, ty)) {
-                        opacityIndex = (opacityIndex + 1) % opacitySteps.size
-                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                        invalidate()
-                        return true
-                    }
-
-                    // 📋 Details Mode
-                    if (btnDetailsRect.contains(tx, ty)) {
-                        showDetails = !showDetails
-                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                        invalidate()
-                        return true
-                    }
-
-                    // ➕ Ajouter Bouton
-                    if (btnAddRect.contains(tx, ty)) {
-                        val newBtn = ButtonConfig(
-                            id = "btn_${UUID.randomUUID().toString().take(6)}",
-                            label = "Action ${profile.buttons.size + 1}",
-                            gamepadButton = "BUTTON_A",
-                            x = 0.5f,
-                            y = 0.5f,
-                            radius = 0.045f,
-                            mode = ButtonMode.TAP
-                        )
-                        profile.buttons.add(newBtn)
-                        selectedItem = newBtn
-                        isLearning = true
-                        performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-                        invalidate()
-                        return true
-                    }
-
-                    // 📸 Capture Screenshot
-                    if (onOpenGallery != null && btnShotRect.contains(tx, ty)) {
-                        performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-                        onOpenGallery.invoke()
-                        return true
-                    }
-
-                    // 🗑️ Retirer Fond Screenshot
-                    if (screenshotBitmap != null && onRemoveScreenshot != null && btnRemRect.contains(tx, ty)) {
-                        performHapticFeedback(HapticFeedbackConstants.REJECT)
-                        onRemoveScreenshot.invoke()
-                        return true
-                    }
-
-                    // If tap is inside the top bar background area (not on a button), consume it
+                    // The rest of the top bar scrolls horizontally, so its buttons fire on
+                    // ACTION_UP (see handleTopBarTap) instead of here, unless the finger moved
                     val barH = 54f * density
                     if (ty <= barH) {
+                        isTopBarTouch = true
+                        isTopBarScrolling = false
+                        topBarTouchStartX = tx
+                        topBarTouchStartY = ty
+                        topBarScrollStartX = topBarScrollX
                         return true
                     }
                 }
@@ -1304,6 +1262,16 @@ class HudEditorOverlayView(
             }
 
             MotionEvent.ACTION_MOVE -> {
+                if (isTopBarTouch) {
+                    val dx = tx - topBarTouchStartX
+                    if (!isTopBarScrolling && abs(dx) > touchSlop) isTopBarScrolling = true
+                    if (isTopBarScrolling) {
+                        topBarScrollX = (topBarScrollStartX + dx).coerceIn(0f, topBarMaxScrollX)
+                        invalidate()
+                    }
+                    return true
+                }
+
                 if (isTopBarHidden && isDraggingShowBtn) {
                     val dx = tx - showBtnDragStartX
                     val dy = ty - showBtnDragStartY
@@ -1366,6 +1334,15 @@ class HudEditorOverlayView(
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (isTopBarTouch) {
+                    isTopBarTouch = false
+                    if (!isTopBarScrolling && event.actionMasked == MotionEvent.ACTION_UP) {
+                        handleTopBarTap(topBarTouchStartX, topBarTouchStartY)
+                    }
+                    isTopBarScrolling = false
+                    return true
+                }
+
                 if (isTopBarHidden && isDraggingShowBtn) {
                     isDraggingShowBtn = false
                     if (!hasShowBtnMoved) {
@@ -1381,6 +1358,88 @@ class HudEditorOverlayView(
             }
         }
         return super.onTouchEvent(event)
+    }
+
+    /** Runs the top bar button under (tx, ty), if any. Called on ACTION_UP of a tap that did not scroll. */
+    private fun handleTopBarTap(tx: Float, ty: Float) {
+        // ✖ Fermer
+        if (btnCloseRect.contains(tx, ty)) {
+            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            onClose()
+            return
+        }
+
+        // 💾 Sauvegarder
+        if (btnSaveRect.contains(tx, ty)) {
+            performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            onSave(profile)
+            return
+        }
+
+        // ⚡ Strafe Quick Toggle
+        if (btnStrafeRect.contains(tx, ty)) {
+            profile.joystick.jiggleStrafe = !profile.joystick.jiggleStrafe
+            performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            invalidate()
+            return
+        }
+
+        // 🎯 Recul Quick Toggle
+        if (btnRecoilRect.contains(tx, ty)) {
+            profile.camera.antiRecoilEnabled = !profile.camera.antiRecoilEnabled
+            performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            invalidate()
+            return
+        }
+
+        // 🎨 Opacité Toggle
+        if (btnOpacRect.contains(tx, ty)) {
+            opacityIndex = (opacityIndex + 1) % opacitySteps.size
+            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            invalidate()
+            return
+        }
+
+        // 📋 Details Mode
+        if (btnDetailsRect.contains(tx, ty)) {
+            showDetails = !showDetails
+            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            invalidate()
+            return
+        }
+
+        // ➕ Ajouter Bouton
+        if (btnAddRect.contains(tx, ty)) {
+            val newBtn = ButtonConfig(
+                id = "btn_${UUID.randomUUID().toString().take(6)}",
+                label = "Action ${profile.buttons.size + 1}",
+                gamepadButton = "BUTTON_A",
+                x = 0.5f,
+                y = 0.5f,
+                radius = 0.045f,
+                mode = ButtonMode.TAP
+            )
+            profile.buttons.add(newBtn)
+            selectedItem = newBtn
+            isLearning = true
+            performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            invalidate()
+            return
+        }
+
+        // 📸 Capture Screenshot
+        if (onOpenGallery != null && btnShotRect.contains(tx, ty)) {
+            performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            onOpenGallery.invoke()
+            return
+        }
+
+        // 🗑️ Retirer Fond Screenshot
+        if (screenshotBitmap != null && onRemoveScreenshot != null && btnRemRect.contains(tx, ty)) {
+            performHapticFeedback(HapticFeedbackConstants.REJECT)
+            onRemoveScreenshot.invoke()
+            return
+        }
     }
 
     private fun nudgeSelectedItem(dx: Float, dy: Float) {
