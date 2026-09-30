@@ -47,7 +47,7 @@ class GamepadEngine(
         hatRight = false
         isSelectHeld = false
         selectUsedInCombo = false
-        stickDirectionPressed.fill(false)
+        synchronized(stickDirectionLock) { stickDirectionPressed.fill(false) }
         pressedRawButtons.clear()
 
         movementProcessor.release()
@@ -96,10 +96,28 @@ class GamepadEngine(
     private var isRunning = false
 
     // Stick states (accessed concurrently by LinuxInputReader IO threads & engine loop)
+    // Un "stick à boutons" est converti en appuis LS_* / RS_* ici, sur le thread de l'écrivain
+    // (IO ou UI), pour que la boucle engine ne dispatche jamais de bouton (zéro allocation).
     @Volatile var lx = 0.0f
+        set(value) {
+            field = value
+            if (leftStickAsButtons) updateStickDirections(value, ly, LEFT_STICK_BASE)
+        }
     @Volatile var ly = 0.0f
+        set(value) {
+            field = value
+            if (leftStickAsButtons) updateStickDirections(lx, value, LEFT_STICK_BASE)
+        }
     @Volatile var rx = 0.0f
+        set(value) {
+            field = value
+            if (rightStickAsButtons) updateStickDirections(value, ry, RIGHT_STICK_BASE)
+        }
     @Volatile var ry = 0.0f
+        set(value) {
+            field = value
+            if (rightStickAsButtons) updateStickDirections(rx, value, RIGHT_STICK_BASE)
+        }
 
     // Trigger states
     @Volatile private var ltPressed = false
@@ -123,12 +141,17 @@ class GamepadEngine(
             "LS_UP", "LS_DOWN", "LS_LEFT", "LS_RIGHT",
             "RS_UP", "RS_DOWN", "RS_LEFT", "RS_RIGHT"
         )
+        private const val LEFT_STICK_BASE = 0
+        private const val RIGHT_STICK_BASE = 4
     }
 
     // Quand un bouton virtuel est assigné à une direction d'un stick, ce stick devient un
     // "stick à boutons" : il ne pilote plus le joystick / la caméra, seulement les boutons.
     @Volatile private var leftStickAsButtons = false
     @Volatile private var rightStickAsButtons = false
+    // Écrit par plusieurs threads (lecteurs IO par nœud, UI pour setProfile / MotionEvent) :
+    // stickDirectionPressed et les deux drapeaux ci-dessus ne changent que sous ce verrou.
+    private val stickDirectionLock = Any()
     private val stickDirectionPressed = BooleanArray(STICK_DIRECTION_KEYS.size)
 
     private val pressedRawButtons = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
@@ -232,12 +255,16 @@ class GamepadEngine(
         buttonProcessor.updateButtons(profile.buttons)
         buttonProcessor.updateSettings(profile.settings)
 
-        releaseStickDirections()
-        leftStickAsButtons = profile.buttons.any { it.gamepadButton.trim().uppercase().startsWith("LS_") }
-        rightStickAsButtons = profile.buttons.any { it.gamepadButton.trim().uppercase().startsWith("RS_") }
+        val lsAsButtons = profile.buttons.any { it.gamepadButton.trim().uppercase().startsWith("LS_") }
+        val rsAsButtons = profile.buttons.any { it.gamepadButton.trim().uppercase().startsWith("RS_") }
+        synchronized(stickDirectionLock) {
+            releaseStickDirectionsLocked()
+            leftStickAsButtons = lsAsButtons
+            rightStickAsButtons = rsAsButtons
+        }
     }
 
-    private fun releaseStickDirections() {
+    private fun releaseStickDirectionsLocked() {
         for (i in stickDirectionPressed.indices) {
             if (stickDirectionPressed[i]) {
                 stickDirectionPressed[i] = false
@@ -247,15 +274,20 @@ class GamepadEngine(
     }
 
     /**
-     * Convertit la position d'un stick en appuis LS_* / RS_* (appelé depuis la boucle engine,
-     * sans allocation : les noms de touches sont des constantes).
+     * Convertit la position d'un stick en appuis LS_* / RS_*. Appelé par les setters de lx / ly / rx / ry,
+     * donc sur le thread qui lit la manette, jamais depuis la boucle engine.
      * Convention Android : l'axe Y est négatif vers le haut.
      */
     private fun updateStickDirections(x: Float, y: Float, baseIndex: Int) {
-        updateStickDirection(baseIndex, -y)     // UP
-        updateStickDirection(baseIndex + 1, y)  // DOWN
-        updateStickDirection(baseIndex + 2, -x) // LEFT
-        updateStickDirection(baseIndex + 3, x)  // RIGHT
+        synchronized(stickDirectionLock) {
+            // Le profil a pu changer entre la lecture du drapeau et la prise du verrou
+            val asButtons = if (baseIndex == LEFT_STICK_BASE) leftStickAsButtons else rightStickAsButtons
+            if (!asButtons) return
+            updateStickDirection(baseIndex, -y)     // UP
+            updateStickDirection(baseIndex + 1, y)  // DOWN
+            updateStickDirection(baseIndex + 2, -x) // LEFT
+            updateStickDirection(baseIndex + 3, x)  // RIGHT
+        }
     }
 
     private fun updateStickDirection(index: Int, value: Float) {
@@ -321,10 +353,9 @@ class GamepadEngine(
                         val curLy = ly
                         val curRx = rx
                         val curRy = ry
+                        // Un stick à boutons est dispatché par ses setters ; ici on le neutralise seulement
                         val lsAsButtons = leftStickAsButtons
                         val rsAsButtons = rightStickAsButtons
-                        if (lsAsButtons) updateStickDirections(curLx, curLy, 0)
-                        if (rsAsButtons) updateStickDirections(curRx, curRy, 4)
                         val moveX = if (lsAsButtons) 0f else curLx
                         val moveY = if (lsAsButtons) 0f else curLy
                         val camX = if (rsAsButtons) 0f else curRx
