@@ -412,6 +412,9 @@ class MainActivity : AppCompatActivity() {
             } else if (event.action == KeyEvent.ACTION_UP) {
                 pressedButtons.remove(btnName)
             }
+            // Still hand the key to the views (the HUD editor's assign-learning listens in
+            // onKeyDown), but report it handled so BUTTON_B never falls back to BACK.
+            super.dispatchKeyEvent(event)
             return true
         }
 
@@ -489,6 +492,8 @@ class MainActivity : AppCompatActivity() {
                 pressedButtons.remove("DPAD_RIGHT")
             }
 
+            // Same as dispatchKeyEvent: the HUD editor learns sticks, triggers and the hat from here.
+            super.dispatchGenericMotionEvent(event)
             return true
         }
         return super.dispatchGenericMotionEvent(event)

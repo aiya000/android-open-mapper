@@ -355,6 +355,9 @@ class HudEditorOverlayView(
                 controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
         }
+        // Gamepad KeyEvents only reach the focused view. Nothing else requests focus when the
+        // editor is embedded in Compose (VisualHudEditorScreen), so take it here.
+        post { requestFocus() }
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -957,6 +960,9 @@ class HudEditorOverlayView(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        // Most branches below return without calling super.onTouchEvent(), which is what would
+        // normally take focus on touch. Take it back here so assign-learning keeps receiving keys.
+        if (event.actionMasked == MotionEvent.ACTION_DOWN && !isFocused) requestFocus()
         scaleDetector.onTouchEvent(event)
         if (scaleDetector.isInProgress) {
             draggedItem = null
