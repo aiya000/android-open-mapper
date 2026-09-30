@@ -78,6 +78,7 @@ android {
 
     buildTypes {
         debug {
+            applicationIdSuffix = ".debug"
             val releaseSigning = signingConfigs.getByName("release")
             if (releaseSigning.storeFile?.exists() == true && !releaseSigning.storePassword.isNullOrEmpty()) {
                 signingConfig = releaseSigning
